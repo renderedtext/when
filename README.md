@@ -19,7 +19,7 @@ promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
     auto: 
-      when: "branch = * AND result = *"
+      when: "branch =~ * AND result =~ *"
 ```
 
 ## Promote automatically on any branch and result is passed
@@ -29,7 +29,7 @@ promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
     auto: 
-      when: "branch = * AND result = passed"
+      when: "branch =~ * AND result = passed"
 ```
 
 ## Promote automatically only when master result is passed
@@ -59,7 +59,7 @@ promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
     auto: 
-      when: "branch ~= 'df/*'"
+      when: "branch =~ 'df/*'"
 ```
 
 ## Promote automatically on staging or master branches
@@ -99,7 +99,7 @@ promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
     allow: 
-      when: tag = *
+      when: tag =~ *
 ```
 
 ## Allow manual promotion only on tags and result is passed
@@ -109,7 +109,7 @@ promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
     allow: 
-      when: tag = * and result = passed
+      when: tag =~ * and result = passed
 ```
 
 ## Promote automatically on any tag
@@ -119,7 +119,7 @@ promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
     auto: 
-      when: tag = *
+      when: tag =~ *
 ```
 
 ## Promote automatically if tag matches “v1.*”
@@ -129,7 +129,7 @@ promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
     auto: 
-      when: "tag ~= 'v1.*'"
+      when: "tag =~ 'v1.*'"
 ```
 
 
@@ -140,7 +140,7 @@ promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
     auto: 
-      when: "tag ~= 'v1.*' AND result = passed"
+      when: "tag =~ 'v1.*' AND result = passed"
 ```
 
 ## Promote automatically on master branch and tags
@@ -150,7 +150,7 @@ promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
     auto: 
-      when: "branch = master OR tag = *"
+      when: "branch = master OR tag =~ *"
 ```
 
 ## Promote automatically on master branch and tags when the result is passed 
@@ -160,7 +160,7 @@ promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
     auto:
-      when: "(branch = master OR tag = *) AND result = passed"
+      when: "(branch = master OR tag =~ *) AND result = passed"
 ```
 
 # Skip block exection
