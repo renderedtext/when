@@ -2,7 +2,7 @@
 
 # Promotions
 
-# Promote automatically always
+## Promote automatically always
 
 ```yaml
 promotions:
@@ -12,7 +12,7 @@ promotions:
       when: true
 ```    
 
-# Promote automatically on any branch and any result
+## Promote automatically on any branch and any result
 
 ```yaml
 promotions:
@@ -22,7 +22,7 @@ promotions:
       when: "branch = * AND result = *"
 ```
 
-# Promote automatically on any branch and result is passed
+## Promote automatically on any branch and result is passed
 
 ```yaml
 promotions:
@@ -32,7 +32,7 @@ promotions:
       when: "branch = * AND result = passed"
 ```
 
-# Promote automatically only when master result is passed
+## Promote automatically only when master result is passed
 
 ```yaml
 promotions:
@@ -42,7 +42,7 @@ promotions:
       when: "branch = master AND result = passed"
 ```
 
-# Promote automatically only master branch
+## Promote automatically only master branch
 
 ```yaml
 promotions:
@@ -52,7 +52,7 @@ promotions:
       when: "branch = master"
 ```
 
-# Promote automatically all branches that start with “df/”
+## Promote automatically all branches that start with “df/”
 
 ```yaml
 promotions:
@@ -62,7 +62,7 @@ promotions:
       when: "branch ~= 'df/*'"
 ```
 
-# Promote automatically on staging or master branches
+## Promote automatically on staging or master branches
 
 ```yaml
 promotions:
@@ -72,7 +72,7 @@ promotions:
       when: branch = staging OR branch = master
 ```
 
-# Allow manual promotion only on master branch
+## Allow manual promotion only on master branch
 
 ```yaml
 promotions:
@@ -82,7 +82,7 @@ promotions:
       when: branch = master
 ```
 
-# Allow manual promotion only if result is passed
+## Allow manual promotion only if result is passed
 
 ```yaml
 promotions:
@@ -92,7 +92,7 @@ promotions:
       when: result = passed
 ```
 
-# Allow manual promotion only on tags
+## Allow manual promotion only on tags
 
 ```yaml
 promotions:
@@ -102,7 +102,7 @@ promotions:
       when: tag = *
 ```
 
-# Allow manual promotion only on tags and result is passed
+## Allow manual promotion only on tags and result is passed
 
 ```yaml
 promotions:
@@ -112,7 +112,7 @@ promotions:
       when: tag = * and result = passed
 ```
 
-# Promote automatically on any tag
+## Promote automatically on any tag
 
 ```yaml
 promotions:
@@ -122,7 +122,7 @@ promotions:
       when: tag = *
 ```
 
-# Promote automatically if tag matches “v1.*”
+## Promote automatically if tag matches “v1.*”
 
 ```yaml
 promotions:
@@ -133,7 +133,7 @@ promotions:
 ```
 
 
-# Promote automatically if tag matches “v1.*” and result is passed
+## Promote automatically if tag matches “v1.*” and result is passed
 
 ```yaml
 promotions:
@@ -143,7 +143,7 @@ promotions:
       when: "tag ~= 'v1.*' AND result = passed"
 ```
 
-# Promote automatically on master branch and tags
+## Promote automatically on master branch and tags
 
 ```yaml
 promotions:
@@ -153,7 +153,7 @@ promotions:
       when: "branch = master OR tag = *"
 ```
 
-# Promote automatically on master branch and tags when the result is passed 
+## Promote automatically on master branch and tags when the result is passed 
 
 ```yaml
 promotions:
