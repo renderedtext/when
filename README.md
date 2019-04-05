@@ -150,3 +150,14 @@ promotions:
     auto: 
       when: "branch = master OR tag = *"
 ```
+
+# Promote automatically on master branch and tags when the result is passed 
+
+```yaml
+promotions:
+  - name: Deploy to production
+    pipeline_file: prod.yml
+    auto:
+      when: "(branch = master OR tag = *) AND result = passed"
+```
+
