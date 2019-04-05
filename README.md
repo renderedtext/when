@@ -314,3 +314,14 @@ fail-fast:
   cancel:
     when: "tag !~ 'dev/*'"
 ```
+
+# Scheduling strategies
+
+```yaml
+queue: 
+  mode:
+    stop:
+      when: "branch = master OR tag =~ *"
+    cancel:
+      when: "tag =~ *"
+```
