@@ -246,3 +246,71 @@ blocks:
       when: "branch !~ 'dev/*'"
 ```
 
+# Fail-fast
+
+## Stop running blocks *
+
+## Cancel pending blocks when a block fails
+
+```yaml
+fail-fast:
+  cancel:
+    when: "true"
+```
+
+## Cancel pending blocks when a block fails and on master branch
+
+```yaml
+fail-fast:
+  cancel:
+    when: "branch = master"
+```
+
+## Cancel pending blocks when a block fails and branch starts with “df/*”
+
+```yaml
+fail-fast:
+  cancel:
+    when: "branch =~ 'df/*'"
+```
+
+## Cancel pending blocks when a block fails and branch is staging or master
+
+```yaml
+fail-fast:
+  cancel:
+    when: "branch = staging OR branch = master"
+```
+
+## Cancel pending blocks when a block fails and on any tag
+
+```yaml
+fail-fast:
+  cancel:
+    when: "tag =~ *"
+```
+
+## Cancel pending blocks when a block fails and tag starts with “v1.*”
+
+```yaml
+fail-fast:
+  cancel:
+    when: "tag =~ 'v1.*'"
+```
+
+
+## Cancel pending blocks when a block fails and branch is master or any tag
+
+```yaml
+fail-fast:
+  cancel:
+    when: "branch = master OR tag =~ *"
+```
+
+## Cancel pending blocks when a block fails and branch doesn’t start with “dev/*”
+
+```yaml
+fail-fast:
+  cancel:
+    when: "tag !~ 'dev/*'"
+```
