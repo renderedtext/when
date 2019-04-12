@@ -1,4 +1,4 @@
-defmodule When.WhenParser.Test do
+defmodule When.Parser.Test do
   use ExUnit.Case
 
   @test_examples [

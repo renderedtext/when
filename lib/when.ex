@@ -1,18 +1,20 @@
 defmodule When do
   @moduledoc """
-  Documentation for When.
+  Module takes string which represents some expression in DSL used for specifying
+  when conditions in Semaphore yaml configurations and evaluates it into boolean
+  value based on actual values of branch, tag, result etc. which are passed in
+  params map.
   """
 
-  @doc """
-  Hello world.
+  alias  When.{Lexer, Parser, Interpreter}
 
-  ## Examples
-
-      iex> When.hello
-      :world
-
-  """
-  def hello do
-    :world
+  def evaluate(string_expression, params) do
+    with {:ok, tokens} <- Lexer.tokenize(string_expression),
+         {:ok, ast}    <- Parser.parse(tokens),
+         result when is_boolean(result)
+                       <- Interpreter.evaluate(ast, params)
+    do
+      {:ok, result}
+    end
   end
 end
