@@ -8,8 +8,8 @@
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    auto: 
-      when: true
+    auto:
+      when: "true"
 ```    
 
 ## Promote automatically on any branch and any result
@@ -18,8 +18,8 @@ promotions:
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    auto: 
-      when: "branch =~ * AND result =~ *"
+    auto:
+      when: "branch =~ '.*' AND. result =~ '.*'"
 ```
 
 ## Promote automatically on any branch and result is passed
@@ -28,8 +28,8 @@ promotions:
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    auto: 
-      when: "branch =~ * AND result = passed"
+    auto:
+      when: "branch =~ '.*' AND result = 'passed'"
 ```
 
 ## Promote automatically only when master result is passed
@@ -38,8 +38,8 @@ promotions:
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    auto: 
-      when: "branch = master AND result = passed"
+    auto:
+      when: "branch = 'master' AND result = 'passed'"
 ```
 
 ## Promote automatically only master branch
@@ -48,8 +48,8 @@ promotions:
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    auto: 
-      when: "branch = master"
+    auto:
+      when: "branch = 'master'"
 ```
 
 ## Promote automatically all branches that start with “df/”
@@ -58,8 +58,8 @@ promotions:
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    auto: 
-      when: "branch =~ 'df/*'"
+    auto:
+      when: "branch =~ '^df\/'"
 ```
 
 ## Promote automatically on staging or master branches
@@ -68,8 +68,8 @@ promotions:
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    auto: 
-      when: branch = staging OR branch = master
+    auto:
+      when: "branch = 'staging' OR branch = 'master'"
 ```
 
 ## Allow manual promotion only on master branch
@@ -78,8 +78,8 @@ promotions:
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    allow: 
-      when: branch = master
+    allow:
+      when: "branch = 'master'"
 ```
 
 ## Allow manual promotion only if result is passed
@@ -88,8 +88,8 @@ promotions:
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    allow: 
-      when: result = passed
+    allow:
+      when: "result = 'passed'"
 ```
 
 ## Allow manual promotion only on tags
@@ -98,8 +98,8 @@ promotions:
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    allow: 
-      when: tag =~ *
+    allow:
+      when: 'tag =~ '.*''
 ```
 
 ## Allow manual promotion only on tags and result is passed
@@ -108,8 +108,8 @@ promotions:
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    allow: 
-      when: tag =~ * and result = passed
+    allow:
+      when: "tag =~ '.*' and result = 'passed'"
 ```
 
 ## Promote automatically on any tag
@@ -118,29 +118,29 @@ promotions:
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    auto: 
-      when: tag =~ *
+    auto:
+      when: "tag =~ '.*'"
 ```
 
-## Promote automatically if tag matches “v1.*”
+## Promote automatically if tag starts with “v1.”
 
 ```yaml
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    auto: 
-      when: "tag =~ 'v1.*'"
+    auto:
+      when: "tag =~ '^v1\.'"
 ```
 
 
-## Promote automatically if tag matches “v1.*” and result is passed
+## Promote automatically if tag starts with "v1." and result is passed
 
 ```yaml
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    auto: 
-      when: "tag =~ 'v1.*' AND result = passed"
+    auto:
+      when: "tag =~ '^v1\.' AND result = 'passed'"
 ```
 
 ## Promote automatically on master branch and tags
@@ -149,18 +149,18 @@ promotions:
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
-    auto: 
-      when: "branch = master OR tag =~ *"
+    auto:
+      when: "branch = 'master' OR tag =~ '.*'"
 ```
 
-## Promote automatically on master branch and tags when the result is passed 
+## Promote automatically on master branch and tags when the result is passed
 
 ```yaml
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
     auto:
-      when: "(branch = master OR tag =~ *) AND result = passed"
+      when: "(branch = 'master' OR tag =~ '.*') AND result = 'passed'"
 ```
 
 # Skip block exection
@@ -180,7 +180,7 @@ blocks:
 blocks:
   - name: Unit tests
     skip:
-      when: "branch = *"
+      when: "branch = '.*'"
 ```
 
 ## Skip when master
@@ -189,7 +189,7 @@ blocks:
 blocks:
   - name: Unit tests
     skip:
-      when: "branch = master"
+      when: "branch = 'master'"
 ```
 
 ## Skip when branch starts with “df/”
@@ -198,7 +198,7 @@ blocks:
 blocks:
   - name: Unit tests
     skip:
-      when: "branch =~ 'df/*'"
+      when: "branch =~ '^df\/'"
 ```
 
 ## Skip when branch is staging or master
@@ -207,7 +207,7 @@ blocks:
 blocks:
   - name: Unit tests
     skip:
-      when: "branch = staging OR branch = master"
+      when: "branch = 'staging' OR branch = 'master'"
 ```
 
 ## Skip on any tag
@@ -216,16 +216,16 @@ blocks:
 blocks:
   - name: Unit tests
     skip:
-      when: "tag = *"
+      when: "tag = '.*'"
 ```
 
-## Skip when tag matches “v1.*”
+## Skip when tag start with “v1.”
 
 ```yaml
 blocks:
   - name: Unit tests
     skip:
-      when: "tag =~ 'v1.*'"
+      when: "tag =~ '^v1\.'"
 ```
 
 ## Skip on master branch and any tags
@@ -234,16 +234,16 @@ blocks:
 blocks:
   - name: Unit tests
     skip:
-      when: "branch = master OR tag = *"
+      when: "branch = 'master' OR tag = '.*'"
 ```
 
-## Execute when branch starts with “dev/” == Skip when branch doesn’t start with dev
+## Execute when branch starts with “dev/” == Skip when branch doesn’t start with dev/
 
 ```yaml
 blocks:
   - name: Unit tests
     skip:
-      when: "branch !~ 'dev/*'"
+      when: "branch !~ '^dev\/'"
 ```
 
 # Fail-fast
@@ -263,15 +263,15 @@ fail-fast:
 ```yaml
 fail-fast:
   cancel:
-    when: "branch = master"
+    when: "branch = 'master'"
 ```
 
-## Cancel pending blocks when a block fails and branch starts with “df/*”
+## Cancel pending blocks when a block fails and branch starts with “df/”
 
 ```yaml
 fail-fast:
   cancel:
-    when: "branch =~ 'df/*'"
+    when: "branch =~ '^df\/'"
 ```
 
 ## Cancel pending blocks when a block fails and branch is staging or master
@@ -279,7 +279,7 @@ fail-fast:
 ```yaml
 fail-fast:
   cancel:
-    when: "branch = staging OR branch = master"
+    when: "branch = 'staging' OR branch = 'master'"
 ```
 
 ## Cancel pending blocks when a block fails and on any tag
@@ -287,15 +287,15 @@ fail-fast:
 ```yaml
 fail-fast:
   cancel:
-    when: "tag =~ *"
+    when: "tag =~ '.*'"
 ```
 
-## Cancel pending blocks when a block fails and tag starts with “v1.*”
+## Cancel pending blocks when a block fails and tag starts with “v1.”
 
 ```yaml
 fail-fast:
   cancel:
-    when: "tag =~ 'v1.*'"
+    when: "tag =~ '^v1\.'"
 ```
 
 
@@ -304,24 +304,24 @@ fail-fast:
 ```yaml
 fail-fast:
   cancel:
-    when: "branch = master OR tag =~ *"
+    when: "branch = 'master' OR tag =~ '.*'"
 ```
 
-## Cancel pending blocks when a block fails and branch doesn’t start with “dev/*”
+## Cancel pending blocks when a block fails and branch doesn’t start with “dev/”
 
 ```yaml
 fail-fast:
   cancel:
-    when: "tag !~ 'dev/*'"
+    when: "tag !~ '^dev\/'"
 ```
 
 # Scheduling strategies
 
 ```yaml
-queue: 
+queue:
   mode:
     stop:
-      when: "branch = master OR tag =~ *"
+      when: "branch = 'master' OR tag =~ '.*'"
     cancel:
-      when: "tag =~ *"
+      when: "tag =~ '.*'"
 ```
