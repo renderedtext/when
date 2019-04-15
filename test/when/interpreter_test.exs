@@ -1,6 +1,8 @@
 defmodule When.Interpreter.Test do
   use ExUnit.Case
 
+  alias When.Interpreter
+
   @test_ast_examples [
     "true",
     "false",
@@ -38,11 +40,30 @@ defmodule When.Interpreter.Test do
       @test_ast_examples
       |> Enum.with_index()
       |> Enum.map(fn {ast, ast_ind} ->
-        result = When.Interpreter.evaluate(ast, params)
+        result = Interpreter.evaluate(ast, params)
         expected = @expected_results |> Enum.at(param_ind) |> Enum.at(ast_ind)
 
         assert {param_ind, ast_ind, result} == {param_ind, ast_ind, expected}
       end)
+    end)
+  end
+
+  test "return error when abstract syntax tree has unsupported operations" do
+    invalid_op = {"invalid_op", "true", "false"}
+    assert {:error, message} = Interpreter.evaluate(invalid_op, %{})
+    assert message == "Unsupported value found while interpreting expression: '#{inspect invalid_op}'"
+  end
+
+  test "if value of keyword parameter isn't given all expression with it will return internal error" do
+    [
+     {"=", "branch", "master"}, {"!=", "branch", "master"},
+     {"=~", "branch", "master"}, {"!~", "branch", "master"},
+     {"and", {"=", "branch", "master"}, "false"}, {"and", "false", {"=", "branch", "master"}},
+     {"or", {"=", "branch", "master"}, "false"}, {"or", "false", {"=", "branch", "master"}},
+    ]
+    |> Enum.map(fn ast ->
+      assert {:error, message} = Interpreter.evaluate(ast, %{})
+      assert message == "Missing value of keyword parameter 'branch'."
     end)
   end
 end
