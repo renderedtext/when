@@ -1,6 +1,8 @@
 defmodule When.Parser.Test do
   use ExUnit.Case
 
+  alias When.{Lexer, Parser}
+
   @test_examples [
     "true",
     "'true'",
@@ -64,21 +66,85 @@ defmodule When.Parser.Test do
                    {"!=", "result_reason", "skipped"}}}
   ]
 
-    test "test parser behavior for various token examples" do
-      @test_examples
-      |> Enum.with_index()
-      |> Enum.map(fn {string, index} ->
-        assert {:ok, tokens, _} = string |> to_charlist() |> :when_lexer.string()
-        assert {tokens, index}
-           == {@expected_tokens |> Enum.at(index), index}
-      end)
+  test "test parser behavior for various token examples" do
+    @test_examples
+    |> Enum.with_index()
+    |> Enum.map(fn {string, index} ->
+      assert {:ok, tokens} = Lexer.tokenize(string)
+      assert {tokens, index}
+         == {@expected_tokens |> Enum.at(index), index}
+    end)
 
-      @expected_tokens
-      |> Enum.with_index()
-      |> Enum.map(fn {tokens, index} ->
-        assert {:ok, ast} = :when_parser.parse(tokens)
-        assert {ast, index}
-           == {@expected_parse_results |> Enum.at(index), index}
-      end)
-    end
+    @expected_tokens
+    |> Enum.with_index()
+    |> Enum.map(fn {tokens, index} ->
+      assert {:ok, ast} = Parser.parse(tokens)
+      assert {ast, index}
+         == {@expected_parse_results |> Enum.at(index), index}
+    end)
+  end
+
+  @invald_strings [
+    "(true and false) = 'master'",
+    "'master' != (true and false)",
+    "and branch != 'master'",
+    " =~ 'master'",
+    "branch !~",
+    "'true' or",
+    "=",
+    "(branch = 'master'",
+    "true or false)"
+  ]
+
+  @invalid_tokens [
+    [
+     {:'(',  1}, {:boolean, 1, "true"}, {:bool_operator, 1, "and"},
+     {:boolean, 1, "false"}, {:')',  1}, {:operator, 1, "="}, {:string, 1, "master"}
+    ],
+    [
+     {:string, 1, "master"}, {:operator, 1, "!="}, {:'(',  1}, {:boolean, 1, "true"},
+     {:bool_operator, 1, "and"}, {:boolean, 1, "false"}, {:')',  1}
+    ],
+    [
+     {:bool_operator, 1, "and"}, {:keyword, 1, "branch"}, {:operator, 1, "!="},
+     {:string, 1, "master"}
+    ],
+    [{:operator, 1, "=~"}, {:string, 1, "master"}],
+    [{:keyword, 1, "branch"}, {:operator, 1, "!~"}],
+    [{:string, 1, "true"}, {:bool_operator, 1, "or"}],
+    [{:operator, 1, "="}],
+    [{:'(',  1}, {:keyword, 1, "branch"}, {:operator, 1, "="}, {:string, 1, "master"}],
+    [{:boolean, 1, "true"}, {:bool_operator, 1, "or"}, {:boolean, 1, "false"}, {:')',  1}],
+  ]
+
+  @error_messages [
+    "Invalid expression on the left of '=' operator.",
+    "Invalid expression on the left of '('.",
+    "Invalid expression on the left of 'and' operator.",
+    "Invalid expression on the left of '=~' operator.",
+    "Invalid or incomplete expression at the end of the line.",
+    "Invalid or incomplete expression at the end of the line.",
+    "Invalid expression on the left of '=' operator.",
+    "Invalid or incomplete expression at the end of the line.",
+    "Invalid expression on the left of ')'."
+  ]
+
+  test "parser returns error when invald token sequence is given" do
+    @invald_strings
+    |> Enum.with_index()
+    |> Enum.map(fn {string, index} ->
+      assert {:ok, tokens} = Lexer.tokenize(string)
+      assert {tokens, index}
+         == {@invalid_tokens |> Enum.at(index), index}
+    end)
+
+    @invalid_tokens
+    |> Enum.with_index()
+    |> Enum.map(fn {tokens, index} ->
+      assert {:error, message} = Parser.parse(tokens)
+      specific_error = @error_messages |> Enum.at(index)
+      assert {message, index} ==
+        {"Syntax error on line 1. - " <> specific_error, index}
+    end)
+  end
 end
