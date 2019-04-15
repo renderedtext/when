@@ -12,7 +12,22 @@ defmodule When.Lexer do
     |> case  do
         {:ok, tokens, _} -> {:ok, tokens}
 
-        error -> error
+        error -> pretty_error(error)
       end
+  end
+
+  defp pretty_error(
+    {:error, {line_no, :when_lexer, {:illegal, characters}}, _no}
+  ) do
+    {:error, "Lexical error on line #{line_no}. - "
+              <> "Illegal characters: #{inspect characters}."}
+  end
+
+  defp pretty_error({:error, error}) do
+    {:error, "Lexical error - Unrecongnized error: #{inspect error}"}
+  end
+
+  defp pretty_error(error) do
+    {:error, "Lexical error - Unrecongnized error: #{inspect error}"}
   end
 end

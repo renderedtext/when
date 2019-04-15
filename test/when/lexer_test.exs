@@ -1,6 +1,8 @@
 defmodule When.Lexer.Test do
   use ExUnit.Case
 
+  alias  When.Lexer
+
   @test_examples [
     "true",
     "'true'",
@@ -50,9 +52,40 @@ defmodule When.Lexer.Test do
     @test_examples
     |> Enum.with_index()
     |> Enum.map(fn {string, index} ->
-      assert {:ok, tokens, _} = string |> to_charlist() |> :when_lexer.string()
+      assert {:ok, tokens} = Lexer.tokenize(string)
       assert {tokens, index}
          == {@expected_example_results |> Enum.at(index), index}
+    end)
+  end
+
+  @invald_strings [
+    "bran",
+    "branch ! = 'bad operator'",
+    "branch = unquoted-string",
+    "branch = unquoted string with whitespace",
+    "Branch =~ 'not-same-case-of-letters'",
+    "[branch = 'unsupported-brackets'] and true",
+    "# branch = 'unsupported-characters'"
+  ]
+
+  @error_messages [
+    "Illegal characters: 'bran'.",
+    "Illegal characters: '! '.",
+    "Illegal characters: 'u'.",
+    "Illegal characters: 'u'.",
+    "Illegal characters: 'Br'.",
+    "Illegal characters: '['.",
+    "Illegal characters: '#'.",
+  ]
+
+  test "lexer returns error when invalid string is given" do
+    @invald_strings
+    |> Enum.with_index()
+    |> Enum.map(fn {string, index} ->
+      assert {:error, message} = Lexer.tokenize(string) 
+      specific_error = @error_messages |> Enum.at(index)
+      assert {message, index} ==
+        {"Lexical error on line 1. - " <> specific_error, index}
     end)
   end
 end
