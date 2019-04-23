@@ -1,8 +1,78 @@
-# when
+# WHEN library
 
-# Promotions
+Purpose of this library is to evaluate conditional expressions written in
+domain specific language defined in `Conditions DSL` section bellow for given
+set of parameters.
 
-## Promote automatically always
+Each condition will be evaluated either as true or false for given set of parameters
+if it is valid expression in `Conditions DSL`, otherwise error is returned.
+
+## Usage
+
+
+Just add it to your `mix.exs` file:
+```
+{:when, github: "renderedtext/when"}
+```
+and then you can evaluate string `condition` written in `Conditions DSL` with:
+```
+When.evaluate(condition, parameters)
+```
+where `parameters` is map containing `{keyword, value}` pairs for each keyword that appears in `condition` string.
+
+## Conditions DSL
+
+Formal language definition in [extended Backus-Naur Form (EBNF)](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) notation:
+
+```
+expression = expression bool_operator term
+           | term
+
+term = "(" expression ")"      
+     | keyword operator string
+     | string operator keyword
+     | string                  
+     | boolean
+
+bool_operator = "and" | "AND" | "or" | "OR"
+
+keyword = "branch" | "BRANCH" | "tag" | "TAG" | "result" | "RESULT" |
+          "result_reason" | "RESULT_REASON"
+
+operator = "=" | "!=" | "=~" | "!~"
+
+boolean = "true" | "TRUE" | "false" | "FALSE"
+
+string = ? all characters between two single quotes, e.g. 'master' ?
+```           
+
+Each `keyword` in passed expression is replaced with passed value from `parameters` map when expression is evaluated, and then operations identified with one of the `operators` from above are executed with those values.
+
+|    KEYWORD     |                 MEANING                          |
+| :------------- | :----------------------------------------------- |
+| branch         | Name of the GitHub branch from which originated the pipeline that is being executed. |
+| tag            | Name of the GitHub tag from which originated the pipeline that is being executed. |
+| result         | Execution result of pipeline, block, or job. Possible values are: passed, stopped, canceled and failed. |
+| result_reason  | The reason for given result of execution. Possible values are: test, malformed, stuck, deleted, internal and user. |
+
+
+|  OPERATOR |                 OPERATION RESULT                          |
+| :-------: | :-------------------------------------------------------- |
+|   =       | True if keyword value and given string are equal          |
+|   !=      | True if keyword value and given string are not equal      |
+|   =~      | True if keyword value and given PCRE* string match        |
+|   !~      | True if keyword value and given PCRE* string do not match |
+|   and     | True if expressions on both sides are true                |
+|   or      | True if at least one of two expressions is true           |
+
+\* PCRE = Perl Compatible Regular Expression
+
+
+# YAML usage examples
+
+## Promotions
+
+### Promote automatically always
 
 ```yaml
 promotions:
@@ -12,17 +82,17 @@ promotions:
       when: "true"
 ```    
 
-## Promote automatically on any branch and any result
+### Promote automatically on any branch and any result
 
 ```yaml
 promotions:
   - name: Deploy to production
     pipeline_file: prod.yml
     auto:
-      when: "branch =~ '.*' AND. result =~ '.*'"
+      when: "branch =~ '.*' AND result =~ '.*'"
 ```
 
-## Promote automatically on any branch and result is passed
+### Promote automatically on any branch and result is passed
 
 ```yaml
 promotions:
@@ -32,7 +102,7 @@ promotions:
       when: "branch =~ '.*' AND result = 'passed'"
 ```
 
-## Promote automatically only when master result is passed
+### Promote automatically only when master result is passed
 
 ```yaml
 promotions:
@@ -42,7 +112,7 @@ promotions:
       when: "branch = 'master' AND result = 'passed'"
 ```
 
-## Promote automatically only master branch
+### Promote automatically only master branch
 
 ```yaml
 promotions:
@@ -52,7 +122,7 @@ promotions:
       when: "branch = 'master'"
 ```
 
-## Promote automatically all branches that start with “df/”
+### Promote automatically all branches that start with “df/”
 
 ```yaml
 promotions:
@@ -62,7 +132,7 @@ promotions:
       when: "branch =~ '^df\/'"
 ```
 
-## Promote automatically on staging or master branches
+### Promote automatically on staging or master branches
 
 ```yaml
 promotions:
@@ -72,7 +142,7 @@ promotions:
       when: "branch = 'staging' OR branch = 'master'"
 ```
 
-## Allow manual promotion only on master branch
+### Allow manual promotion only on master branch
 
 ```yaml
 promotions:
@@ -82,7 +152,7 @@ promotions:
       when: "branch = 'master'"
 ```
 
-## Allow manual promotion only if result is passed
+### Allow manual promotion only if result is passed
 
 ```yaml
 promotions:
@@ -92,7 +162,7 @@ promotions:
       when: "result = 'passed'"
 ```
 
-## Allow manual promotion only on tags
+### Allow manual promotion only on tags
 
 ```yaml
 promotions:
@@ -102,7 +172,7 @@ promotions:
       when: 'tag =~ '.*''
 ```
 
-## Allow manual promotion only on tags and result is passed
+### Allow manual promotion only on tags and result is passed
 
 ```yaml
 promotions:
@@ -112,7 +182,7 @@ promotions:
       when: "tag =~ '.*' and result = 'passed'"
 ```
 
-## Promote automatically on any tag
+### Promote automatically on any tag
 
 ```yaml
 promotions:
@@ -122,7 +192,7 @@ promotions:
       when: "tag =~ '.*'"
 ```
 
-## Promote automatically if tag starts with “v1.”
+### Promote automatically if tag starts with “v1.”
 
 ```yaml
 promotions:
@@ -133,7 +203,7 @@ promotions:
 ```
 
 
-## Promote automatically if tag starts with "v1." and result is passed
+### Promote automatically if tag starts with "v1." and result is passed
 
 ```yaml
 promotions:
@@ -143,7 +213,7 @@ promotions:
       when: "tag =~ '^v1\.' AND result = 'passed'"
 ```
 
-## Promote automatically on master branch and tags
+### Promote automatically on master branch and tags
 
 ```yaml
 promotions:
@@ -153,7 +223,7 @@ promotions:
       when: "branch = 'master' OR tag =~ '.*'"
 ```
 
-## Promote automatically on master branch and tags when the result is passed
+### Promote automatically on master branch and tags when the result is passed
 
 ```yaml
 promotions:
@@ -163,9 +233,9 @@ promotions:
       when: "(branch = 'master' OR tag =~ '.*') AND result = 'passed'"
 ```
 
-# Skip block exection
+## Skip block exection
 
-## Skip always
+### Skip always
 
 ```yaml
 blocks:
@@ -174,7 +244,7 @@ blocks:
       when: "true"
 ```
 
-## Skip on any branch
+### Skip on any branch
 
 ```yaml
 blocks:
@@ -183,7 +253,7 @@ blocks:
       when: "branch = '.*'"
 ```
 
-## Skip when master
+### Skip when master
 
 ```yaml
 blocks:
@@ -192,7 +262,7 @@ blocks:
       when: "branch = 'master'"
 ```
 
-## Skip when branch starts with “df/”
+### Skip when branch starts with “df/”
 
 ```yaml
 blocks:
@@ -201,7 +271,7 @@ blocks:
       when: "branch =~ '^df\/'"
 ```
 
-## Skip when branch is staging or master
+### Skip when branch is staging or master
 
 ```yaml
 blocks:
@@ -210,7 +280,7 @@ blocks:
       when: "branch = 'staging' OR branch = 'master'"
 ```
 
-## Skip on any tag
+### Skip on any tag
 
 ```yaml
 blocks:
@@ -219,7 +289,7 @@ blocks:
       when: "tag = '.*'"
 ```
 
-## Skip when tag start with “v1.”
+### Skip when tag start with “v1.”
 
 ```yaml
 blocks:
@@ -228,7 +298,7 @@ blocks:
       when: "tag =~ '^v1\.'"
 ```
 
-## Skip on master branch and any tags
+### Skip on master branch and any tags
 
 ```yaml
 blocks:
@@ -237,7 +307,7 @@ blocks:
       when: "branch = 'master' OR tag = '.*'"
 ```
 
-## Execute when branch starts with “dev/” == Skip when branch doesn’t start with dev/
+### Execute when branch starts with “dev/” == Skip when branch doesn’t start with dev/
 
 ```yaml
 blocks:
@@ -246,76 +316,76 @@ blocks:
       when: "branch !~ '^dev\/'"
 ```
 
-# Fail-fast
+## Fail-fast
 
-## Stop running blocks *
+### Stop running blocks *
 
-## Cancel pending blocks when a block fails
+### Cancel pending blocks when a block fails
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "true"
 ```
 
-## Cancel pending blocks when a block fails and on master branch
+### Cancel pending blocks when a block fails and on master branch
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "branch = 'master'"
 ```
 
-## Cancel pending blocks when a block fails and branch starts with “df/”
+### Cancel pending blocks when a block fails and branch starts with “df/”
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "branch =~ '^df\/'"
 ```
 
-## Cancel pending blocks when a block fails and branch is staging or master
+### Cancel pending blocks when a block fails and branch is staging or master
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "branch = 'staging' OR branch = 'master'"
 ```
 
-## Cancel pending blocks when a block fails and on any tag
+### Cancel pending blocks when a block fails and on any tag
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "tag =~ '.*'"
 ```
 
-## Cancel pending blocks when a block fails and tag starts with “v1.”
+### Cancel pending blocks when a block fails and tag starts with “v1.”
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "tag =~ '^v1\.'"
 ```
 
 
-## Cancel pending blocks when a block fails and branch is master or any tag
+### Cancel pending blocks when a block fails and branch is master or any tag
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "branch = 'master' OR tag =~ '.*'"
 ```
 
-## Cancel pending blocks when a block fails and branch doesn’t start with “dev/”
+### Cancel pending blocks when a block fails and branch doesn’t start with “dev/”
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "tag !~ '^dev\/'"
 ```
 
-# Scheduling strategies
+## Scheduling strategies
 
 ```yaml
 queue:
