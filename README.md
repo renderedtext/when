@@ -323,7 +323,7 @@ blocks:
 ### Cancel pending blocks when a block fails
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "true"
 ```
@@ -331,7 +331,7 @@ fail-fast:
 ### Cancel pending blocks when a block fails and on master branch
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "branch = 'master'"
 ```
@@ -339,7 +339,7 @@ fail-fast:
 ### Cancel pending blocks when a block fails and branch starts with “df/”
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "branch =~ '^df\/'"
 ```
@@ -347,7 +347,7 @@ fail-fast:
 ### Cancel pending blocks when a block fails and branch is staging or master
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "branch = 'staging' OR branch = 'master'"
 ```
@@ -355,7 +355,7 @@ fail-fast:
 ### Cancel pending blocks when a block fails and on any tag
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "tag =~ '.*'"
 ```
@@ -363,7 +363,7 @@ fail-fast:
 ### Cancel pending blocks when a block fails and tag starts with “v1.”
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "tag =~ '^v1\.'"
 ```
@@ -372,7 +372,7 @@ fail-fast:
 ### Cancel pending blocks when a block fails and branch is master or any tag
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "branch = 'master' OR tag =~ '.*'"
 ```
@@ -380,7 +380,7 @@ fail-fast:
 ### Cancel pending blocks when a block fails and branch doesn’t start with “dev/”
 
 ```yaml
-fail-fast:
+fail_fast:
   cancel:
     when: "tag !~ '^dev\/'"
 ```
