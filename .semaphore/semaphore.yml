@@ -1,17 +1,36 @@
-version: v1.0
-name: Test pipeline
+version: "v1.0"
+name: Pipeline
 agent:
   machine:
     type: e1-standard-2
     os_image: ubuntu1804
-
+fail_fast:
+  stop:
+    when: "true"
 blocks:
-  - name: "Build"
+  - name: A
+    dependencies: []
     task:
-      prologue:
-        commands:
-          - checkout
       jobs:
-      - name: Unit tests
-        commands:
-          - make test
+        - commands:
+            - echo "testing"
+  - name: B
+    dependencies: []
+    skip:
+      when: "(branch =~ '^db/' and branch != 'db/123') or tag =~ '^v0\.'"
+    task:
+      jobs:
+        - commands:
+            - exit 127
+  - name: C
+    dependencies: [A]
+    task:
+      jobs:
+        - commands:
+            - exit 127
+  - name: D
+    dependencies: []
+    task:
+      jobs:
+        - commands:
+            - sleep 60
