@@ -58,14 +58,16 @@ defmodule When.Interpreter do
   # Utility
 
   defp evaluate_(error = {:error, _msg}, _r_value, _module, _func), do: error
-  defp evaluate_(l_value, error = {:error, _msg}, _module, _func), do: error
+  defp evaluate_(_l_value, error = {:error, _msg}, _module, _func), do: error
+  defp evaluate_(_pattern, "", _module, :match?), do: false
+  defp evaluate_(_pattern, "", _module, :not_match?), do: true
   defp evaluate_(l_value, r_value, module, func) do
     apply(module, func, [l_value, r_value])
   end
 
   # Helper matching function
 
-  def not_match?(pattern, string), do: not Regex.match?(~r/#{pattern}/, string)
+  def not_match?(pattern, string), do: not Regex.match?(pattern, string)
 
   ## This is rquired because both Kernel.and and Kernel.or are macros, so they can
   ## not be called directly from apply/3

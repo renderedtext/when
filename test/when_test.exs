@@ -44,6 +44,16 @@ defmodule When.Test do
     end)
   end
 
+  test "empty string value of keyword parameter does not match '.*' regex" do
+    params = %{"branch" => "master", "tag" => ""}
+
+    assert {:ok, false} = When.evaluate("tag =~ '.*'", params)
+    assert {:ok, true}  = When.evaluate("tag !~ '.*'", params)
+
+    assert {:ok, true}  = When.evaluate("branch =~ '.*'", params)
+    assert {:ok, false} = When.evaluate("branch !~ '.*'", params)
+  end
+
   @invald_strings_parser [
     "(true and false) = 'master'",
     "'master' != (true and false)",
