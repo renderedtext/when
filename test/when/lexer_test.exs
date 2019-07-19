@@ -12,6 +12,7 @@ defmodule When.Lexer.Test do
     "(branch = 'master' and tag =~ 'v1.*') or result != 'passed'",
     "(branch = 'master' AND tag =~ 'v1.*') OR result_reason != 'stopped'",
     "((BRANCH !~ 'master') and tag =~ 'v1.*') OR (result_reason != 'stopped')",
+    "(pr =~ '.*' and result = 'passed') or PR !~ '.*'"
   ]
 
   @expected_example_results [
@@ -45,6 +46,12 @@ defmodule When.Lexer.Test do
      {:keyword, 1, "tag"}, {:operator, 1, "=~"}, {:string, 1, "v1.*"}, {:')',  1},
      {:bool_operator, 1, "or"}, {:'(',  1}, {:keyword, 1, "result_reason"},
      {:operator, 1, "!="}, {:string, 1, "stopped"}, {:')',  1}
+    ],
+    [
+      {:'(',  1}, {:keyword, 1, "pr"}, {:operator, 1, "=~"}, {:string, 1, ".*"},
+      {:bool_operator, 1, "and"}, {:keyword, 1, "result"}, {:operator, 1, "="},
+      {:string, 1, "passed"}, {:')',  1}, {:bool_operator, 1, "or"}, {:keyword, 1, "pr"},
+      {:operator, 1, "!~"}, {:string, 1, ".*"}
     ]
   ]
 
@@ -82,7 +89,7 @@ defmodule When.Lexer.Test do
     @invald_strings
     |> Enum.with_index()
     |> Enum.map(fn {string, index} ->
-      assert {:error, message} = Lexer.tokenize(string) 
+      assert {:error, message} = Lexer.tokenize(string)
       specific_error = @error_messages |> Enum.at(index)
       assert {message, index} ==
         {"Lexical error on line 1. - " <> specific_error, index}

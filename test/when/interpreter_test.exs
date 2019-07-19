@@ -14,23 +14,29 @@ defmodule When.Interpreter.Test do
             {"or", {"=~", "tag", "v1.*"}, {"!=", "result_reason", "stopped"}}},
     {"or", {"and", {"=", "branch", "master"}, {"!=", "result", "failed"}},
            {"and", {"and", {"=~", "tag", "v1.*"}, {"=", "result", "passed"}},
-                   {"!=", "result_reason", "skipped"}}}
+                   {"!=", "result_reason", "skipped"}}},
+    {"and", {"=~", "pr", ".*"}, {"=", "result", "passed"}}
   ]
 
   @test_params_examples [
-    %{"branch" => "master", "tag" => "v1.5", "result" => "passed", "result_reason" => "stopped"},
-    %{"branch" => "dev", "tag" => "v1.5", "result" => "passed", "result_reason" => "stopped"},
-    %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "result_reason" => "stopped"},
-    %{"branch" => "master", "tag" => "v1.5", "result" => "failed", "result_reason" => "stopped"},
-    %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "result_reason" => "skipped"},
+    %{"branch" => "master", "tag" => "v1.5", "result" => "passed", "pr" => "123",
+     "result_reason" => "stopped"},
+    %{"branch" => "dev", "tag" => "v1.5", "result" => "passed", "pr" => "123",
+      "result_reason" => "stopped"},
+    %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "pr" => "123",
+      "result_reason" => "stopped"},
+    %{"branch" => "master", "tag" => "v1.5", "result" => "failed", "pr" => "123",
+      "result_reason" => "stopped"},
+    %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "pr" => "",
+      "result_reason" => "skipped"},
   ]
 
   @expected_results [
-    [true, false, false, true, true, true, true],
-    [true, false, false, false, false, false, true],
-    [true, false, false, false, false, false, true],
-    [true, false, false, true, true, true, false],
-    [true, false, false, false, false, true, true],
+    [true, false, false, true, true, true, true, true],
+    [true, false, false, false, false, false, true, true],
+    [true, false, false, false, false, false, true, true],
+    [true, false, false, true, true, true, false, false],
+    [true, false, false, false, false, true, true, false],
   ]
 
   test "test interpreter behavior for various asts and parmas examples" do
