@@ -13,7 +13,7 @@ defmodule When.Parser.Test do
     "branch = 'master' AND (tag =~ 'v1.*' OR result_reason != 'stopped')",
     "(branch = 'master' and result != 'failed') or
      (tag =~ 'v1.*' and result = 'passed' and result_reason != 'skipped')",
-     "(pr =~ '.*' and result = 'passed') or PR !~ '.*'"
+    "(pull_request =~ '.*' and result = 'passed') or PULL_REQUEST !~ '.*'"
   ]
 
   @expected_tokens [
@@ -51,10 +51,10 @@ defmodule When.Parser.Test do
      {:operator, 2, "!="}, {:string, 2, "skipped"}, {:')',  2}
     ],
     [
-      {:'(',  1}, {:keyword, 1, "pr"}, {:operator, 1, "=~"}, {:string, 1, ".*"},
+      {:'(',  1}, {:keyword, 1, "pull_request"}, {:operator, 1, "=~"}, {:string, 1, ".*"},
       {:bool_operator, 1, "and"}, {:keyword, 1, "result"}, {:operator, 1, "="},
-      {:string, 1, "passed"}, {:')',  1}, {:bool_operator, 1, "or"}, {:keyword, 1, "pr"},
-      {:operator, 1, "!~"}, {:string, 1, ".*"}
+      {:string, 1, "passed"}, {:')',  1}, {:bool_operator, 1, "or"},
+      {:keyword, 1, "pull_request"}, {:operator, 1, "!~"}, {:string, 1, ".*"}
     ]
   ]
 
@@ -71,8 +71,8 @@ defmodule When.Parser.Test do
     {"or", {"and", {"=", "branch", "master"}, {"!=", "result", "failed"}},
            {"and", {"and", {"=~", "tag", "v1.*"}, {"=", "result", "passed"}},
                    {"!=", "result_reason", "skipped"}}},
-   {"or", {"and", {"=~", "pr", ".*"}, {"=", "result", "passed"}},
-          {"!~", "pr", ".*"}}
+   {"or", {"and", {"=~", "pull_request", ".*"}, {"=", "result", "passed"}},
+          {"!~", "pull_request", ".*"}}
   ]
 
   test "test parser behavior for various token examples" do

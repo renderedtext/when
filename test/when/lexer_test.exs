@@ -12,7 +12,7 @@ defmodule When.Lexer.Test do
     "(branch = 'master' and tag =~ 'v1.*') or result != 'passed'",
     "(branch = 'master' AND tag =~ 'v1.*') OR result_reason != 'stopped'",
     "((BRANCH !~ 'master') and tag =~ 'v1.*') OR (result_reason != 'stopped')",
-    "(pr =~ '.*' and result = 'passed') or PR !~ '.*'"
+    "(pull_request =~ '.*' and result = 'passed') or PULL_REQUEST !~ '.*'"
   ]
 
   @expected_example_results [
@@ -48,10 +48,10 @@ defmodule When.Lexer.Test do
      {:operator, 1, "!="}, {:string, 1, "stopped"}, {:')',  1}
     ],
     [
-      {:'(',  1}, {:keyword, 1, "pr"}, {:operator, 1, "=~"}, {:string, 1, ".*"},
+      {:'(',  1}, {:keyword, 1, "pull_request"}, {:operator, 1, "=~"}, {:string, 1, ".*"},
       {:bool_operator, 1, "and"}, {:keyword, 1, "result"}, {:operator, 1, "="},
-      {:string, 1, "passed"}, {:')',  1}, {:bool_operator, 1, "or"}, {:keyword, 1, "pr"},
-      {:operator, 1, "!~"}, {:string, 1, ".*"}
+      {:string, 1, "passed"}, {:')',  1}, {:bool_operator, 1, "or"},
+      {:keyword, 1, "pull_request"}, {:operator, 1, "!~"}, {:string, 1, ".*"}
     ]
   ]
 

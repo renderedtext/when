@@ -15,19 +15,19 @@ defmodule When.Interpreter.Test do
     {"or", {"and", {"=", "branch", "master"}, {"!=", "result", "failed"}},
            {"and", {"and", {"=~", "tag", "v1.*"}, {"=", "result", "passed"}},
                    {"!=", "result_reason", "skipped"}}},
-    {"and", {"=~", "pr", ".*"}, {"=", "result", "passed"}}
+    {"and", {"=~", "pull_request", ".*"}, {"=", "result", "passed"}}
   ]
 
   @test_params_examples [
-    %{"branch" => "master", "tag" => "v1.5", "result" => "passed", "pr" => "123",
+    %{"branch" => "master", "tag" => "v1.5", "result" => "passed", "pull_request" => "123",
      "result_reason" => "stopped"},
-    %{"branch" => "dev", "tag" => "v1.5", "result" => "passed", "pr" => "123",
+    %{"branch" => "dev", "tag" => "v1.5", "result" => "passed", "pull_request" => "123",
       "result_reason" => "stopped"},
-    %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "pr" => "123",
+    %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "pull_request" => "123",
       "result_reason" => "stopped"},
-    %{"branch" => "master", "tag" => "v1.5", "result" => "failed", "pr" => "123",
+    %{"branch" => "master", "tag" => "v1.5", "result" => "failed", "pull_request" => "123",
       "result_reason" => "stopped"},
-    %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "pr" => "",
+    %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "pull_request" => "",
       "result_reason" => "skipped"},
   ]
 
