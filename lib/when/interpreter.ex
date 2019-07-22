@@ -5,7 +5,7 @@ defmodule When.Interpreter do
   return boolean value for when condition which given expression represents.
   """
 
-  @keywords ~w(branch tag result result_reason)
+  @keywords ~w(branch tag pull_request result result_reason)
 
   def evaluate(error = {:error, _}, _params), do: error
 

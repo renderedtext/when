@@ -1,6 +1,6 @@
 Definitions.
 
-KEYWORD = branch|BRANCH|tag|TAG|result|RESULT|result_reason|RESULT_REASON
+KEYWORD = branch|BRANCH|tag|TAG|pull_request|PULL_REQUEST|result|RESULT|result_reason|RESULT_REASON
 OPERATOR = =|!=|=~|!~
 BOOL_OPERATOR = and|AND|or|OR
 BOOLEAN = true|TRUE|false|FALSE
