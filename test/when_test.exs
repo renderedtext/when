@@ -92,23 +92,21 @@ defmodule When.Test do
   end
 
   @invald_strings_lexer [
-    "bran",
     "branch ! = 'bad operator'",
-    "branch = unquoted-string",
-    "branch = unquoted string with whitespace",
-    "Branch =~ 'not-same-case-of-letters'",
     "[branch = 'unsupported-brackets'] and true",
-    "# branch = 'unsupported-characters'"
+    "# branch = 'unsupported-characters'",
+    "_identifier_needs_to_start_with_lettter(123)",
+    "cant_contain_&^('identifier only accepts alfa-numerics, uderscores and dashes')",
+    "fun(123.0) and invalid_number(123.456.2323)"
   ]
 
   @error_messages_lexer [
-    "Illegal characters: 'bran'.",
     "Illegal characters: '! '.",
-    "Illegal characters: 'u'.",
-    "Illegal characters: 'u'.",
-    "Illegal characters: 'Br'.",
     "Illegal characters: '['.",
     "Illegal characters: '#'.",
+    "Illegal characters: '_'.",
+    "Illegal characters: '&'.",
+    "Illegal characters: '.'."
   ]
 
   test "lexer returns error when invalid string is given" do
