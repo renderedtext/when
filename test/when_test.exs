@@ -1,6 +1,13 @@
 defmodule When.Test do
   use ExUnit.Case
 
+  setup do
+    Application.put_env(:when, :test_fun_0, {__MODULE__, :test_fun_0, 0})
+    Application.put_env(:when, :test_fun_1, {__MODULE__, :test_fun_1, 1})
+    Application.put_env(:when, :test_fun_2, {__MODULE__, :test_fun_2, 2})
+
+    :ok
+  end
 
   @valid_examples [
     "true",
@@ -11,23 +18,30 @@ defmodule When.Test do
     "branch = 'master' AND (tag =~ 'v1.*' OR result_reason != 'stopped')",
     "(branch = 'master' and result != 'failed') or
      (tag =~ 'v1.*' and result = 'passed' and result_reason != 'skipped')",
+    "pull_request =~ '.*' and result = 'passed'",
+    "test_fun_0() and (test_fun_1('master') = test_fun_2('master', 0))",
   ]
 
   @valid_params_examples [
-    %{"branch" => "master", "tag" => "v1.5", "result" => "passed", "result_reason" => "stopped"},
-    %{"branch" => "dev", "tag" => "v1.5", "result" => "passed", "result_reason" => "stopped"},
-    %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "result_reason" => "stopped"},
-    %{"branch" => "master", "tag" => "v1.5", "result" => "failed", "result_reason" => "stopped"},
-    %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "result_reason" => "skipped"},
-  ]
+      %{"branch" => "master", "tag" => "v1.5", "result" => "passed", "pull_request" => "123",
+       "result_reason" => "stopped"},
+      %{"branch" => "dev", "tag" => "v1.5", "result" => "passed", "pull_request" => "123",
+        "result_reason" => "stopped"},
+      %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "pull_request" => "123",
+        "result_reason" => "stopped"},
+      %{"branch" => "master", "tag" => "v1.5", "result" => "failed", "pull_request" => "123",
+        "result_reason" => "stopped"},
+      %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "pull_request" => "",
+        "result_reason" => "skipped"},
+    ]
 
-  @expected_results [
-    [true, false, false, true, true, true, true],
-    [true, false, false, false, false, false, true],
-    [true, false, false, false, false, false, true],
-    [true, false, false, true, true, true, false],
-    [true, false, false, false, false, true, true],
-  ]
+    @expected_results [
+      [true, false, false, true, true, true, true, true, false],
+      [true, false, false, false, false, false, true, true, true],
+      [true, false, false, false, false, false, true, true, false],
+      [true, false, false, true, true, true, false, false, false],
+      [true, false, false, false, false, true, true, false, false],
+    ]
 
   test "test module top levele behavior for various string and pramas combination" do
     @valid_params_examples
@@ -45,13 +59,16 @@ defmodule When.Test do
   end
 
   test "empty string value of keyword parameter does not match '.*' regex" do
-    params = %{"branch" => "master", "tag" => ""}
+    params = %{"branch" => "master", "tag" => "", "pull_request" => "123"}
 
     assert {:ok, false} = When.evaluate("tag =~ '.*'", params)
     assert {:ok, true}  = When.evaluate("tag !~ '.*'", params)
 
     assert {:ok, true}  = When.evaluate("branch =~ '.*'", params)
     assert {:ok, false} = When.evaluate("branch !~ '.*'", params)
+
+    assert {:ok, true} = When.evaluate("pull_request =~ '.*'", params)
+    assert {:ok, false}  = When.evaluate("pull_request !~ '.*'", params)
   end
 
   @invald_strings_parser [
@@ -121,4 +138,16 @@ defmodule When.Test do
         {"Lexical error on line 1. - " <> specific_error, index}
     end)
   end
+
+  def test_fun_0(_params), do: {:ok, true}
+
+  def test_fun_1(branch, params) do
+    {:ok, params["branch"] == branch}
+  end
+
+  def test_fun_2(branch, int, params) when is_integer(int) do
+    {:ok, params["branch"] == branch and int > 1}
+  end
+
+  def test_fun_2(_branch, _int, _params), do: {:error, "Second parameter must be integer."}
 end

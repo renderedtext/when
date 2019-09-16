@@ -40,6 +40,17 @@ defmodule When.Interpreter do
   defp evaluate_(integer, _params) when is_integer(integer), do: integer
   defp evaluate_(float, _params) when is_float(float), do: float
 
+  defp evaluate_({:fun, name, f_params}, params) do
+    f_params
+    |> Enum.reduce_while([], fn f_param, acc ->
+      case evaluate_(f_param, params) do
+        {:error, e} -> {:halt, {:error, e}}
+        value -> {:cont, acc ++ [value]}
+      end
+    end)
+    |> evaluate_fun(name, params)
+  end
+
   defp evaluate_({"and", first, second}, params) do
     l_value = evaluate_(first, params)
     r_value = evaluate_(second, params)
@@ -78,6 +89,31 @@ defmodule When.Interpreter do
 
   defp evaluate_(error_value, _params) do
     {:error, "Unsupported value found while interpreting expression: '#{to_str(error_value)}'"}
+  end
+
+  defp evaluate_fun(f_params, name, params) do
+    not_found_error = "Function with name '#{name}' is not found."
+    :when
+    |> Application.get_env(name, {:error, not_found_error})
+    |> evaluate_fun_(f_params, name, params)
+  end
+
+  defp evaluate_fun_(error = {:error, _msg}, _, _, _), do: error
+  defp evaluate_fun_({module, fun, cardinality}, f_params, name, params) do
+    if length(f_params) == cardinality do
+      call_function(module, fun, f_params ++ [params])
+    else
+      {:error, "Function '#{name}' accepts #{cardinality} parameter(s)"
+                <> " and was provided with #{length(f_params)}."}
+    end
+  end
+
+  defp call_function(module, fun, f_params) do
+    case apply(module, fun, f_params) do
+      {:ok, value} -> value
+      {:error, e} -> {:error, "Function '#{fun}' returned error: #{to_str(e)}"}
+      error -> {:error, "Function '#{fun}' returned unsupported value: #{to_str(error)}"}
+    end
   end
 
   # Utility
