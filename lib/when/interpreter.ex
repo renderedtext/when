@@ -7,61 +7,86 @@ defmodule When.Interpreter do
 
   @keywords ~w(branch tag pull_request result result_reason)
 
-  def evaluate(error = {:error, _}, _params), do: error
+  def evaluate(string, params) do
+    case evaluate_(string, params) do
+      bool when is_boolean(bool)
+        -> bool
+      int when is_integer(int) and int >= 0
+        -> true
+      int when is_integer(int) and int < 0
+        -> false
+      float when is_float(float) and float >= 0.0
+        -> true
+      float when is_float(float) and float < 0.0
+        -> false
+      str when is_binary(str) and str != "false"
+        -> true
+      error -> error
+    end
+  end
 
-  def evaluate(keyword, params) when keyword in @keywords do
+  defp evaluate_(error = {:error, _}, _params), do: error
+
+  defp evaluate_({:keyword, keyword}, params) when keyword in @keywords do
     error_404 = {:error, "Missing value of keyword parameter '#{keyword}'."}
     Map.get(params, keyword, error_404)
   end
 
-  def evaluate("false", _params), do: false
+  defp evaluate_("false", _params), do: false
+  defp evaluate_("true", _params), do: true
 
-  # any other string that is not 'false' or keyword is considered as true
-  def evaluate(string, _params) when is_binary(string), do: true
+  defp evaluate_(boolean, _params) when is_boolean(boolean), do: boolean
+  defp evaluate_(string, _params) when is_binary(string), do: string
+  defp evaluate_(integer, _params) when is_integer(integer), do: integer
+  defp evaluate_(float, _params) when is_float(float), do: float
 
-  def evaluate({"and", first, second}, params) do
-    l_value = evaluate(first, params)
-    r_value = evaluate(second, params)
-    evaluate_(l_value, r_value, __MODULE__, :and_func)
+  defp evaluate_({"and", first, second}, params) do
+    l_value = evaluate_(first, params)
+    r_value = evaluate_(second, params)
+    apply_opp(l_value, r_value, __MODULE__, :and_func)
   end
 
-  def evaluate({"or", first, second}, params) do
-    l_value = evaluate(first, params)
-    r_value = evaluate(second, params)
-    evaluate_(l_value, r_value, __MODULE__, :or_func)
+  defp evaluate_({"or", first, second}, params) do
+    l_value = evaluate_(first, params)
+    r_value = evaluate_(second, params)
+    apply_opp(l_value, r_value, __MODULE__, :or_func)
   end
 
-  def evaluate({"=", keyword, r_value}, params) do
-    l_value = evaluate(keyword, params)
-    evaluate_(l_value, r_value, Kernel, :"==")
+  defp evaluate_({"=", first, second}, params) do
+    l_value = evaluate_(first, params)
+    r_value = evaluate_(second, params)
+    apply_opp(l_value, r_value, Kernel, :"==")
   end
 
-  def evaluate({"!=", keyword, r_value}, params) do
-    l_value = evaluate(keyword, params)
-    evaluate_(l_value, r_value, Kernel, :"!=")
+  defp evaluate_({"!=", first, second}, params) do
+    l_value = evaluate_(first, params)
+    r_value = evaluate_(second, params)
+    apply_opp(l_value, r_value, Kernel, :"!=")
   end
 
-  def evaluate({"=~", keyword, pattern}, params) do
-    value = evaluate(keyword, params)
-    evaluate_(~r/#{pattern}/, value, Regex, :match?)
+  defp evaluate_({"=~", first, second}, params) do
+    l_value = evaluate_(first, params)
+    r_value = evaluate_(second, params)
+    apply_opp(~r/#{r_value}/, l_value, Regex, :match?)
   end
 
-  def evaluate({"!~", keyword, pattern}, params) do
-    value = evaluate(keyword, params)
-    evaluate_(~r/#{pattern}/, value, __MODULE__, :not_match?)
+  defp evaluate_({"!~", first, second}, params) do
+    l_value = evaluate_(first, params)
+    r_value = evaluate_(second, params)
+    apply_opp(~r/#{r_value}/, l_value, __MODULE__, :not_match?)
   end
 
-  def evaluate(error_value, _params) do
+  defp evaluate_(error_value, _params) do
     {:error, "Unsupported value found while interpreting expression: '#{to_str(error_value)}'"}
   end
 
   # Utility
 
-  defp evaluate_(error = {:error, _msg}, _r_value, _module, _func), do: error
-  defp evaluate_(_l_value, error = {:error, _msg}, _module, _func), do: error
-  defp evaluate_(_pattern, "", _module, :match?), do: false
-  defp evaluate_(_pattern, "", _module, :not_match?), do: true
-  defp evaluate_(l_value, r_value, module, func) do
+  defp apply_opp(error = {:error, _msg}, _r_value, _module, _func), do: error
+  defp apply_opp(_l_value, error = {:error, _msg}, _module, _func), do: error
+  defp apply_opp(_pattern, "", _module, :match?), do: false
+  defp apply_opp(_pattern, "", _module, :not_match?), do: true
+  defp apply_opp(l_value, r_value, module, func) do
     apply(module, func, [l_value, r_value])
   end
 
@@ -69,7 +94,7 @@ defmodule When.Interpreter do
 
   def not_match?(pattern, string), do: not Regex.match?(pattern, string)
 
-  ## This is rquired because both Kernel.and and Kernel.or are macros, so they can
+  ## This is required because both Kernel.and and Kernel.or are macros, so they can
   ## not be called directly from apply/3
   def and_func(first, second), do: first and second
   def or_func(first, second), do: first or second

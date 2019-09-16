@@ -17,11 +17,11 @@ defmodule When.Lexer.Test do
   ]
 
   @expected_example_results [
-    [{:boolean, 1, "true"}],
+    [{:boolean, 1, true}],
     [{:string, 1, "true"}],
     [{:'(',  1}, {:string, 1, "false"}, {:')',  1}],
     [
-     {:'(',  1}, {:boolean, 1, "false"}, {:')',  1}, {:bool_operator, 1, "and"},
+     {:'(',  1}, {:boolean, 1, false}, {:')',  1}, {:bool_operator, 1, "and"},
      {:keyword, 1, "tag"}, {:operator, 1, "!="}, {:string, 1, "v1.*"}
     ],
     [
@@ -57,7 +57,7 @@ defmodule When.Lexer.Test do
     [
       {:identifier, 1, :some_fun}, {:'(',  1}, {:string, 1, "abc"}, {:',',  1},
       {:integer, 1, 123}, {:',',  1}, {:float, 1, 45.67}, {:',',  1},
-      {:boolean, 1, "true"}, {:')',  1}, {:bool_operator, 1, "or"}, {:boolean, 1, "false"}
+      {:boolean, 1, true}, {:')',  1}, {:bool_operator, 1, "or"}, {:boolean, 1, false}
     ]
   ]
 

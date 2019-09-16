@@ -27,7 +27,7 @@ Rules.
 \)              : {token, {')',  TokenLine}}.
 ,               : {token, {',',  TokenLine}}.
 {KEYWORD}       : {token, {keyword,  TokenLine, to_lowercase_binary(TokenChars)}}.
-{BOOLEAN}       : {token, {boolean,  TokenLine, to_lowercase_binary(TokenChars)}}.
+{BOOLEAN}       : {token, {boolean,  TokenLine, to_boolean(TokenChars)}}.
 {STRING}        : {token, {string, TokenLine, extract_string(TokenChars)}}.
 {INTEGER}       : {token, {integer, TokenLine, list_to_integer(TokenChars)}}.
 {FLOAT}         : {token, {float, TokenLine, list_to_float(TokenChars)}}.

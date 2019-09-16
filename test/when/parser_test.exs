@@ -17,11 +17,11 @@ defmodule When.Parser.Test do
   ]
 
   @expected_tokens [
-    [{:boolean, 1, "true"}],
+    [{:boolean, 1, true}],
     [{:string, 1, "true"}],
     [{:'(',  1}, {:string, 1, "false"}, {:')',  1}],
     [
-     {:'(',  1}, {:boolean, 1, "false"}, {:')',  1}, {:bool_operator, 1, "and"},
+     {:'(',  1}, {:boolean, 1, false}, {:')',  1}, {:bool_operator, 1, "and"},
      {:keyword, 1, "tag"}, {:operator, 1, "!="}, {:string, 1, "v1.*"}
     ],
     [
@@ -55,24 +55,51 @@ defmodule When.Parser.Test do
       {:bool_operator, 1, "and"}, {:keyword, 1, "result"}, {:operator, 1, "="},
       {:string, 1, "passed"}, {:')',  1}, {:bool_operator, 1, "or"},
       {:keyword, 1, "pull_request"}, {:operator, 1, "!~"}, {:string, 1, ".*"}
+    ],
+    [
+      {:identifier, 1, :some_fun}, {:'(',  1}, {:integer, 1, 123}, {:')',  1},
+      {:bool_operator, 1, "and"}, {:'(',  1}, {:identifier, 1, :other_fun},
+      {:'(',  1}, {:string, 1, "abc"}, {:',',  1}, {:float, 1, 4.56}, {:',',  1},
+      {:boolean, 1, false}, {:')',  1}, {:operator, 1, "="},
+      {:integer, 1, 7}, {:')',  1}
+    ],
+    [
+      {:identifier, 1, :FUNCTION}, {:'(',  1}, {:')',  1}
+    ],
+    [
+      {:'(',  1}, {:identifier, 1, :some_fun}, {:'(',  1}, {:')',  1},
+      {:bool_operator, 1, "or"}, {:'(',  1}, {:keyword, 1, "branch"},
+      {:operator, 1, "="}, {:string, 1, "master"}, {:bool_operator, 1, "and"},
+      {:keyword, 1, "tag"}, {:operator, 1, "=~"}, {:string, 1, "v1.*"}, {:')',  1},
+      {:')',  1}, {:bool_operator, 1, "and"}, {:boolean, 1, true}
     ]
   ]
 
   @expected_parse_results [
-    "true",
+    true,
     "true",
     "false",
-    {"and", "false", {"!=", "tag", "v1.*"}},
-    {"and", {"=", "branch", "master"}, {"=~", "tag", "v1.*"}},
-    {"or", {"and", {"=", "branch", "master"}, {"=~", "tag", "v1.*"}},
-           {"!=", "result", "passed"}},
-    {"and", {"=", "branch", "master"},
-            {"or", {"=~", "tag", "v1.*"}, {"!=", "result_reason", "stopped"}}},
-    {"or", {"and", {"=", "branch", "master"}, {"!=", "result", "failed"}},
-           {"and", {"and", {"=~", "tag", "v1.*"}, {"=", "result", "passed"}},
-                   {"!=", "result_reason", "skipped"}}},
-   {"or", {"and", {"=~", "pull_request", ".*"}, {"=", "result", "passed"}},
-          {"!~", "pull_request", ".*"}}
+    {"and", false, {"!=", {:keyword, "tag"}, "v1.*"}},
+
+    {"and", {"=", {:keyword, "branch"}, "master"}, {"=~", {:keyword, "tag"}, "v1.*"}},
+
+    {"or", {"and", {"=", {:keyword, "branch"}, "master"},
+                   {"=~", {:keyword, "tag"}, "v1.*"}},
+           {"!=", {:keyword, "result"}, "passed"}},
+
+    {"and", {"=", {:keyword, "branch"}, "master"},
+            {"or", {"=~", {:keyword, "tag"}, "v1.*"},
+                   {"!=", {:keyword, "result_reason"}, "stopped"}}},
+
+    {"or", {"and", {"=", {:keyword, "branch"}, "master"},
+                   {"!=", {:keyword, "result"}, "failed"}},
+           {"and", {"and", {"=~", {:keyword, "tag"}, "v1.*"},
+                           {"=", {:keyword, "result"}, "passed"}},
+                   {"!=", {:keyword, "result_reason"}, "skipped"}}},
+
+   {"or", {"and", {"=~", {:keyword, "pull_request"}, ".*"},
+                  {"=", {:keyword, "result"}, "passed"}},
+          {"!~", {:keyword, "pull_request"}, ".*"}},
   ]
 
   test "test parser behavior for various token examples" do
@@ -107,12 +134,12 @@ defmodule When.Parser.Test do
 
   @invalid_tokens [
     [
-     {:'(',  1}, {:boolean, 1, "true"}, {:bool_operator, 1, "and"},
-     {:boolean, 1, "false"}, {:')',  1}, {:operator, 1, "="}, {:string, 1, "master"}
+     {:'(',  1}, {:boolean, 1, true}, {:bool_operator, 1, "and"},
+     {:boolean, 1, false}, {:')',  1}, {:operator, 1, "="}, {:string, 1, "master"}
     ],
     [
-     {:string, 1, "master"}, {:operator, 1, "!="}, {:'(',  1}, {:boolean, 1, "true"},
-     {:bool_operator, 1, "and"}, {:boolean, 1, "false"}, {:')',  1}
+     {:string, 1, "master"}, {:operator, 1, "!="}, {:'(',  1}, {:boolean, 1, true},
+     {:bool_operator, 1, "and"}, {:boolean, 1, false}, {:')',  1}
     ],
     [
      {:bool_operator, 1, "and"}, {:keyword, 1, "branch"}, {:operator, 1, "!="},
@@ -123,7 +150,7 @@ defmodule When.Parser.Test do
     [{:string, 1, "true"}, {:bool_operator, 1, "or"}],
     [{:operator, 1, "="}],
     [{:'(',  1}, {:keyword, 1, "branch"}, {:operator, 1, "="}, {:string, 1, "master"}],
-    [{:boolean, 1, "true"}, {:bool_operator, 1, "or"}, {:boolean, 1, "false"}, {:')',  1}],
+    [{:boolean, 1, true}, {:bool_operator, 1, "or"}, {:boolean, 1, false}, {:')',  1}],
   ]
 
   @error_messages [

@@ -4,18 +4,18 @@ defmodule When.Interpreter.Test do
   alias When.Interpreter
 
   @test_ast_examples [
-    "true",
-    "false",
-    {"and", "false", {"!=", "tag", "v1.*"}},
-    {"and", {"=", "branch", "master"}, {"=~", "tag", "v1.*"}},
-    {"or", {"and", {"=", "branch", "master"}, {"=~", "tag", "v1.*"}},
-           {"!=", "result", "passed"}},
-    {"and", {"=", "branch", "master"},
-            {"or", {"=~", "tag", "v1.*"}, {"!=", "result_reason", "stopped"}}},
-    {"or", {"and", {"=", "branch", "master"}, {"!=", "result", "failed"}},
-           {"and", {"and", {"=~", "tag", "v1.*"}, {"=", "result", "passed"}},
-                   {"!=", "result_reason", "skipped"}}},
-    {"and", {"=~", "pull_request", ".*"}, {"=", "result", "passed"}}
+    true,
+    false,
+    {"and", false, {"!=", {:keyword, "tag"}, "v1.*"}},
+    {"and", {"=", {:keyword, "branch"}, "master"}, {"=~", {:keyword, "tag"}, "v1.*"}},
+    {"or", {"and", {"=", {:keyword, "branch"}, "master"}, {"=~", {:keyword, "tag"}, "v1.*"}},
+           {"!=", {:keyword, "result"}, "passed"}},
+    {"and", {"=", {:keyword, "branch"}, "master"},
+            {"or", {"=~", {:keyword, "tag"}, "v1.*"}, {"!=", {:keyword, "result_reason"}, "stopped"}}},
+    {"or", {"and", {"=", {:keyword, "branch"}, "master"}, {"!=", {:keyword, "result"}, "failed"}},
+           {"and", {"and", {"=~", {:keyword, "tag"}, "v1.*"}, {"=", {:keyword, "result"}, "passed"}},
+                   {"!=", {:keyword, "result_reason"}, "skipped"}}},
+    {"and", {"=~", {:keyword, "pull_request"}, ".*"}, {"=", {:keyword, "result"}, "passed"}},
   ]
 
   @test_params_examples [
@@ -62,10 +62,10 @@ defmodule When.Interpreter.Test do
 
   test "if value of keyword parameter isn't given all expression with it will return internal error" do
     [
-     {"=", "branch", "master"}, {"!=", "branch", "master"},
-     {"=~", "branch", "master"}, {"!~", "branch", "master"},
-     {"and", {"=", "branch", "master"}, "false"}, {"and", "false", {"=", "branch", "master"}},
-     {"or", {"=", "branch", "master"}, "false"}, {"or", "false", {"=", "branch", "master"}},
+     {"=", {:keyword, "branch"}, "master"}, {"!=", {:keyword, "branch"}, "master"},
+     {"=~", {:keyword, "branch"}, "master"}, {"!~", {:keyword, "branch"}, "master"},
+     {"and", {"=", {:keyword, "branch"}, "master"}, "false"}, {"and", "false", {"=", {:keyword, "branch"}, "master"}},
+     {"or", {"=", {:keyword, "branch"}, "master"}, "false"}, {"or", "false", {"=", {:keyword, "branch"}, "master"}},
     ]
     |> Enum.map(fn ast ->
       assert {:error, message} = Interpreter.evaluate(ast, %{})
