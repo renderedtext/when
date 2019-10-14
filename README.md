@@ -287,7 +287,7 @@ blocks:
 blocks:
   - name: Unit tests
     skip:
-      when: "tag = '.*'"
+      when: "tag =~ '.*'"
 ```
 
 ### Skip when tag start with “v1.”
@@ -305,7 +305,7 @@ blocks:
 blocks:
   - name: Unit tests
     skip:
-      when: "branch = 'master' OR tag = '.*'"
+      when: "branch = 'master' OR tag =~ '.*'"
 ```
 
 ### Execute when branch starts with “dev/” == Skip when branch doesn’t start with dev/
