@@ -3,19 +3,29 @@ defmodule When.Interpreter.Test do
 
   alias When.Interpreter
 
+  setup do
+    Application.put_env(:when, :test_fun_0, {__MODULE__, :test_fun_0, 0})
+    Application.put_env(:when, :test_fun_1, {__MODULE__, :test_fun_1, 1})
+    Application.put_env(:when, :test_fun_2, {__MODULE__, :test_fun_2, 2})
+
+    :ok
+  end
+
   @test_ast_examples [
-    "true",
-    "false",
-    {"and", "false", {"!=", "tag", "v1.*"}},
-    {"and", {"=", "branch", "master"}, {"=~", "tag", "v1.*"}},
-    {"or", {"and", {"=", "branch", "master"}, {"=~", "tag", "v1.*"}},
-           {"!=", "result", "passed"}},
-    {"and", {"=", "branch", "master"},
-            {"or", {"=~", "tag", "v1.*"}, {"!=", "result_reason", "stopped"}}},
-    {"or", {"and", {"=", "branch", "master"}, {"!=", "result", "failed"}},
-           {"and", {"and", {"=~", "tag", "v1.*"}, {"=", "result", "passed"}},
-                   {"!=", "result_reason", "skipped"}}},
-    {"and", {"=~", "pull_request", ".*"}, {"=", "result", "passed"}}
+    true,
+    false,
+    {"and", false, {"!=", {:keyword, "tag"}, "v1.*"}},
+    {"and", {"=", {:keyword, "branch"}, "master"}, {"=~", {:keyword, "tag"}, "v1.*"}},
+    {"or", {"and", {"=", {:keyword, "branch"}, "master"}, {"=~", {:keyword, "tag"}, "v1.*"}},
+           {"!=", {:keyword, "result"}, "passed"}},
+    {"and", {"=", {:keyword, "branch"}, "master"},
+            {"or", {"=~", {:keyword, "tag"}, "v1.*"}, {"!=", {:keyword, "result_reason"}, "stopped"}}},
+    {"or", {"and", {"=", {:keyword, "branch"}, "master"}, {"!=", {:keyword, "result"}, "failed"}},
+           {"and", {"and", {"=~", {:keyword, "tag"}, "v1.*"}, {"=", {:keyword, "result"}, "passed"}},
+                   {"!=", {:keyword, "result_reason"}, "skipped"}}},
+    {"and", {"=~", {:keyword, "pull_request"}, ".*"}, {"=", {:keyword, "result"}, "passed"}},
+    {"and", {:fun, :test_fun_0, []}, {"=", {:fun, :test_fun_1, ["master"]},
+                                           {:fun, :test_fun_2, ["master", 0]}}}
   ]
 
   @test_params_examples [
@@ -32,11 +42,11 @@ defmodule When.Interpreter.Test do
   ]
 
   @expected_results [
-    [true, false, false, true, true, true, true, true],
-    [true, false, false, false, false, false, true, true],
-    [true, false, false, false, false, false, true, true],
-    [true, false, false, true, true, true, false, false],
-    [true, false, false, false, false, true, true, false],
+    [true, false, false, true, true, true, true, true, false],
+    [true, false, false, false, false, false, true, true, true],
+    [true, false, false, false, false, false, true, true, false],
+    [true, false, false, true, true, true, false, false, false],
+    [true, false, false, false, false, true, true, false, false],
   ]
 
   test "test interpreter behavior for various asts and parmas examples" do
@@ -62,14 +72,45 @@ defmodule When.Interpreter.Test do
 
   test "if value of keyword parameter isn't given all expression with it will return internal error" do
     [
-     {"=", "branch", "master"}, {"!=", "branch", "master"},
-     {"=~", "branch", "master"}, {"!~", "branch", "master"},
-     {"and", {"=", "branch", "master"}, "false"}, {"and", "false", {"=", "branch", "master"}},
-     {"or", {"=", "branch", "master"}, "false"}, {"or", "false", {"=", "branch", "master"}},
+     {"=", {:keyword, "branch"}, "master"}, {"!=", {:keyword, "branch"}, "master"},
+     {"=~", {:keyword, "branch"}, "master"}, {"!~", {:keyword, "branch"}, "master"},
+     {"and", {"=", {:keyword, "branch"}, "master"}, "false"}, {"and", "false", {"=", {:keyword, "branch"}, "master"}},
+     {"or", {"=", {:keyword, "branch"}, "master"}, "false"}, {"or", "false", {"=", {:keyword, "branch"}, "master"}},
     ]
     |> Enum.map(fn ast ->
       assert {:error, message} = Interpreter.evaluate(ast, %{})
       assert message == "Missing value of keyword parameter 'branch'."
     end)
   end
+
+  test "various error when calling functions" do
+    examples =
+      [{:fun, :invalid_fun_name, []},
+       {:fun, :test_fun_1, ["two, instead of", "one parameter"]},
+       {:fun, :test_fun_2, ["function returns :error tuple", false]}]
+
+    errors =
+      ["Function with name 'invalid_fun_name' is not found.",
+       "Function 'test_fun_1' accepts 1 parameter(s) and was provided with 2.",
+       "Function 'test_fun_2' returned error: Second parameter must be integer."]
+
+    examples
+    |> Enum.with_index()
+    |> Enum.map(fn {ast, index} ->
+      assert {:error, message} = Interpreter.evaluate(ast, %{})
+      assert message == errors |> Enum.at(index)
+    end)
+  end
+
+  def test_fun_0(_params), do: {:ok, true}
+
+  def test_fun_1(branch, params) do
+    {:ok, params["branch"] == branch}
+  end
+
+  def test_fun_2(branch, int, params) when is_integer(int) do
+    {:ok, params["branch"] == branch and int > 1}
+  end
+
+  def test_fun_2(_branch, _int, _params), do: {:error, "Second parameter must be integer."}
 end
