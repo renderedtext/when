@@ -5,6 +5,7 @@ defmodule When.Test do
     Application.put_env(:when, :test_fun_0, {__MODULE__, :test_fun_0, 0})
     Application.put_env(:when, :test_fun_1, {__MODULE__, :test_fun_1, 1})
     Application.put_env(:when, :test_fun_2, {__MODULE__, :test_fun_2, 2})
+    Application.put_env(:when, :failing_fun, {__MODULE__, :failing_fun, 1})
 
     :ok
   end
@@ -139,6 +140,21 @@ defmodule When.Test do
     end)
   end
 
+  test "when 'dry_run: true' option is given => funtions are not executed" do
+    string = "failing_fun('param 1')"
+    params = @valid_params_examples |> Enum.at(0)
+
+    assert {:ok, false} = When.evaluate(string, params, dry_run: true)
+  end
+
+  test "when 'dry_run: true' option is given => no of params for function is checked" do
+    string = "failing_fun('param 1', 'one too many param')"
+    params = @valid_params_examples |> Enum.at(0)
+
+    assert {:error, msg} = When.evaluate(string, params, dry_run: true)
+    assert msg == "Function 'failing_fun' accepts 1 parameter(s) and was provided with 2."
+  end
+
   def test_fun_0(_params), do: {:ok, true}
 
   def test_fun_1(branch, params) do
@@ -150,4 +166,6 @@ defmodule When.Test do
   end
 
   def test_fun_2(_branch, _int, _params), do: {:error, "Second parameter must be integer."}
+
+  def failing_fun(_param, _params), do: {:error, "This always fails."}
 end
