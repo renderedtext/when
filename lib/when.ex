@@ -8,11 +8,11 @@ defmodule When do
 
   alias  When.{Lexer, Parser, Interpreter}
 
-  def evaluate(string_expression, params) do
+  def evaluate(string_expression, params, opts \\ []) do
     with {:ok, tokens} <- Lexer.tokenize(string_expression),
          {:ok, ast}    <- Parser.parse(tokens),
          result when is_boolean(result)
-                       <- Interpreter.evaluate(ast, params)
+                       <- Interpreter.evaluate(ast, params, opts)
     do
       {:ok, result}
     end

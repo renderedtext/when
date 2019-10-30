@@ -7,8 +7,8 @@ defmodule When.Interpreter do
 
   @keywords ~w(branch tag pull_request result result_reason)
 
-  def evaluate(string, params) do
-    case evaluate_(string, params) do
+  def evaluate(string, params, opts \\ []) do
+    case evaluate_(string, params, opts) do
       bool when is_boolean(bool)
         -> bool
       int when is_integer(int) and int >= 0
@@ -25,90 +25,91 @@ defmodule When.Interpreter do
     end
   end
 
-  defp evaluate_(error = {:error, _}, _params), do: error
+  defp evaluate_(error = {:error, _}, _params, _opts), do: error
 
-  defp evaluate_({:keyword, keyword}, params) when keyword in @keywords do
+  defp evaluate_({:keyword, keyword}, params, _opts) when keyword in @keywords do
     error_404 = {:error, "Missing value of keyword parameter '#{keyword}'."}
     Map.get(params, keyword, error_404)
   end
 
-  defp evaluate_("false", _params), do: false
-  defp evaluate_("true", _params), do: true
+  defp evaluate_("false", _params, _opts), do: false
+  defp evaluate_("true", _params, _opts), do: true
 
-  defp evaluate_(boolean, _params) when is_boolean(boolean), do: boolean
-  defp evaluate_(string, _params) when is_binary(string), do: string
-  defp evaluate_(integer, _params) when is_integer(integer), do: integer
-  defp evaluate_(float, _params) when is_float(float), do: float
+  defp evaluate_(boolean, _params, _opts) when is_boolean(boolean), do: boolean
+  defp evaluate_(string, _params, _opts) when is_binary(string), do: string
+  defp evaluate_(integer, _params, _opts) when is_integer(integer), do: integer
+  defp evaluate_(float, _params, _opts) when is_float(float), do: float
 
-  defp evaluate_({:fun, name, f_params}, params) do
+  defp evaluate_({:fun, name, f_params}, params, opts) do
     f_params
     |> Enum.reduce_while([], fn f_param, acc ->
-      case evaluate_(f_param, params) do
+      case evaluate_(f_param, params, opts) do
         {:error, e} -> {:halt, {:error, e}}
         value -> {:cont, acc ++ [value]}
       end
     end)
-    |> evaluate_fun(name, params)
+    |> evaluate_fun(name, params, opts)
   end
 
-  defp evaluate_({"and", first, second}, params) do
-    l_value = evaluate_(first, params)
-    r_value = evaluate_(second, params)
+  defp evaluate_({"and", first, second}, params, opts) do
+    l_value = evaluate_(first, params, opts)
+    r_value = evaluate_(second, params, opts)
     apply_opp(l_value, r_value, __MODULE__, :and_func)
   end
 
-  defp evaluate_({"or", first, second}, params) do
-    l_value = evaluate_(first, params)
-    r_value = evaluate_(second, params)
+  defp evaluate_({"or", first, second}, params, opts) do
+    l_value = evaluate_(first, params, opts)
+    r_value = evaluate_(second, params, opts)
     apply_opp(l_value, r_value, __MODULE__, :or_func)
   end
 
-  defp evaluate_({"=", first, second}, params) do
-    l_value = evaluate_(first, params)
-    r_value = evaluate_(second, params)
+  defp evaluate_({"=", first, second}, params, opts) do
+    l_value = evaluate_(first, params, opts)
+    r_value = evaluate_(second, params, opts)
     apply_opp(l_value, r_value, Kernel, :"==")
   end
 
-  defp evaluate_({"!=", first, second}, params) do
-    l_value = evaluate_(first, params)
-    r_value = evaluate_(second, params)
+  defp evaluate_({"!=", first, second}, params, opts) do
+    l_value = evaluate_(first, params, opts)
+    r_value = evaluate_(second, params, opts)
     apply_opp(l_value, r_value, Kernel, :"!=")
   end
 
-  defp evaluate_({"=~", first, second}, params) do
-    l_value = evaluate_(first, params)
-    r_value = evaluate_(second, params)
+  defp evaluate_({"=~", first, second}, params, opts) do
+    l_value = evaluate_(first, params, opts)
+    r_value = evaluate_(second, params, opts)
     apply_opp(~r/#{r_value}/, l_value, Regex, :match?)
   end
 
-  defp evaluate_({"!~", first, second}, params) do
-    l_value = evaluate_(first, params)
-    r_value = evaluate_(second, params)
+  defp evaluate_({"!~", first, second}, params, opts) do
+    l_value = evaluate_(first, params, opts)
+    r_value = evaluate_(second, params, opts)
     apply_opp(~r/#{r_value}/, l_value, __MODULE__, :not_match?)
   end
 
-  defp evaluate_(error_value, _params) do
+  defp evaluate_(error_value, _params, _opts) do
     {:error, "Unsupported value found while interpreting expression: '#{to_str(error_value)}'"}
   end
 
-  defp evaluate_fun(f_params, name, params) do
+  defp evaluate_fun(f_params, name, params, opts) do
     not_found_error = "Function with name '#{name}' is not found."
     :when
     |> Application.get_env(name, {:error, not_found_error})
-    |> evaluate_fun_(f_params, name, params)
+    |> evaluate_fun_({f_params, name, params}, opts)
   end
 
-  defp evaluate_fun_(error = {:error, _msg}, _, _, _), do: error
-  defp evaluate_fun_({module, fun, cardinality}, f_params, name, params) do
+  defp evaluate_fun_(error = {:error, _msg}, _fun_p, _opts), do: error
+  defp evaluate_fun_({module, fun, cardinality}, {f_params, name, params}, opts) do
     if length(f_params) == cardinality do
-      call_function(module, fun, f_params ++ [params])
+      call_function(module, fun, f_params ++ [params], opts)
     else
       {:error, "Function '#{name}' accepts #{cardinality} parameter(s)"
                 <> " and was provided with #{length(f_params)}."}
     end
   end
 
-  defp call_function(module, fun, f_params) do
+  defp call_function(_mod, _fun, _f_params, [dry_run: true]), do: {:ok, false}
+  defp call_function(module, fun, f_params, _opts) do
     case apply(module, fun, f_params) do
       {:ok, value} -> value
       {:error, e} -> {:error, "Function '#{fun}' returned error: #{to_str(e)}"}
