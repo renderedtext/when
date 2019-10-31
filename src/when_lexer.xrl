@@ -25,6 +25,8 @@ Rules.
 {BOOL_OPERATOR} : {token, {bool_operator,  TokenLine, to_lowercase_binary(TokenChars)}}.
 \(              : {token, {'(',  TokenLine}}.
 \)              : {token, {')',  TokenLine}}.
+\[              : {token, {'[',  TokenLine}}.
+\]              : {token, {']',  TokenLine}}.
 ,               : {token, {',',  TokenLine}}.
 {KEYWORD}       : {token, {keyword,  TokenLine, to_lowercase_binary(TokenChars)}}.
 {BOOLEAN}       : {token, {boolean,  TokenLine, to_boolean(TokenChars)}}.
