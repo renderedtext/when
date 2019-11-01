@@ -13,7 +13,8 @@ defmodule When.Lexer.Test do
     "(branch = 'master' AND tag =~ 'v1.*') OR result_reason != 'stopped'",
     "((BRANCH !~ 'master') and tag =~ 'v1.*') OR (result_reason != 'stopped')",
     "(pull_request =~ '.*' and result = 'passed') or PULL_REQUEST !~ '.*'",
-    "some_fun('abc', 123, 45.67, true) or false"
+    "some_fun('abc', 123, 45.67, true) or false",
+    "some_fun([123, 45.67]) or [false] and []",
   ]
 
   @expected_example_results [
@@ -58,6 +59,12 @@ defmodule When.Lexer.Test do
       {:identifier, 1, :some_fun}, {:'(',  1}, {:string, 1, "abc"}, {:',',  1},
       {:integer, 1, 123}, {:',',  1}, {:float, 1, 45.67}, {:',',  1},
       {:boolean, 1, true}, {:')',  1}, {:bool_operator, 1, "or"}, {:boolean, 1, false}
+    ],
+    [
+      {:identifier, 1, :some_fun}, {:'(',  1}, {:'[',  1}, {:integer, 1, 123},
+      {:',',  1}, {:float, 1, 45.67}, {:']',  1}, {:')',  1}, {:bool_operator, 1, "or"},
+      {:'[',  1}, {:boolean, 1, false}, {:']',  1}, {:bool_operator, 1, "and"},
+      {:'[',  1}, {:']',  1}
     ]
   ]
 
@@ -73,7 +80,7 @@ defmodule When.Lexer.Test do
 
   @invald_strings [
     "branch ! = 'bad operator'",
-    "[branch = 'unsupported-brackets'] and true",
+    "{branch = 'unsupported-brackets'} and true",
     "# branch = 'unsupported-characters'",
     "_identifier_needs_to_start_with_lettter(123)",
     "cant_contain_&^('identifier only accepts alfa-numerics, uderscores and dashes')",
@@ -82,7 +89,7 @@ defmodule When.Lexer.Test do
 
   @error_messages [
     "Illegal characters: '! '.",
-    "Illegal characters: '['.",
+    "Illegal characters: '{'.",
     "Illegal characters: '#'.",
     "Illegal characters: '_'.",
     "Illegal characters: '&'.",

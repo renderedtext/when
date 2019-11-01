@@ -6,6 +6,7 @@ defmodule When.Test do
     Application.put_env(:when, :test_fun_1, {__MODULE__, :test_fun_1, 1})
     Application.put_env(:when, :test_fun_2, {__MODULE__, :test_fun_2, 2})
     Application.put_env(:when, :failing_fun, {__MODULE__, :failing_fun, 1})
+    Application.put_env(:when, :test_fun_3, {__MODULE__, :test_fun_3, 2})
 
     :ok
   end
@@ -21,6 +22,7 @@ defmodule When.Test do
      (tag =~ 'v1.*' and result = 'passed' and result_reason != 'skipped')",
     "pull_request =~ '.*' and result = 'passed'",
     "test_fun_0() and (test_fun_1('master') = test_fun_2('master', 0))",
+    "(test_fun_3([1, 2], [['a', 'b'], []]) or branch = 'master') and [1.0, 'uiop']",
   ]
 
   @valid_params_examples [
@@ -37,14 +39,14 @@ defmodule When.Test do
     ]
 
     @expected_results [
-      [true, false, false, true, true, true, true, true, false],
-      [true, false, false, false, false, false, true, true, true],
-      [true, false, false, false, false, false, true, true, false],
-      [true, false, false, true, true, true, false, false, false],
-      [true, false, false, false, false, true, true, false, false],
+      [true, false, false, true, true, true, true, true, false, true],
+      [true, false, false, false, false, false, true, true, true, false],
+      [true, false, false, false, false, false, true, true, false, true],
+      [true, false, false, true, true, true, false, false, false, true],
+      [true, false, false, false, false, true, true, false, false, true],
     ]
 
-  test "test module top levele behavior for various string and pramas combination" do
+  test "test module top level behavior for various string and pramas combination" do
     @valid_params_examples
     |> Enum.with_index()
     |> Enum.map(fn {params, param_ind} ->
@@ -111,7 +113,7 @@ defmodule When.Test do
 
   @invald_strings_lexer [
     "branch ! = 'bad operator'",
-    "[branch = 'unsupported-brackets'] and true",
+    "{branch = 'unsupported-brackets'} and true",
     "# branch = 'unsupported-characters'",
     "_identifier_needs_to_start_with_lettter(123)",
     "cant_contain_&^('identifier only accepts alfa-numerics, uderscores and dashes')",
@@ -120,7 +122,7 @@ defmodule When.Test do
 
   @error_messages_lexer [
     "Illegal characters: '! '.",
-    "Illegal characters: '['.",
+    "Illegal characters: '{'.",
     "Illegal characters: '#'.",
     "Illegal characters: '_'.",
     "Illegal characters: '&'.",
@@ -168,4 +170,6 @@ defmodule When.Test do
   def test_fun_2(_branch, _int, _params), do: {:error, "Second parameter must be integer."}
 
   def failing_fun(_param, _params), do: {:error, "This always fails."}
+
+  def test_fun_3(_list_1, _list_2, _params), do: {:ok, false}
 end
