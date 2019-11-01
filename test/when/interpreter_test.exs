@@ -7,6 +7,7 @@ defmodule When.Interpreter.Test do
     Application.put_env(:when, :test_fun_0, {__MODULE__, :test_fun_0, 0})
     Application.put_env(:when, :test_fun_1, {__MODULE__, :test_fun_1, 1})
     Application.put_env(:when, :test_fun_2, {__MODULE__, :test_fun_2, 2})
+    Application.put_env(:when, :test_fun_3, {__MODULE__, :test_fun_3, 2})
 
     :ok
   end
@@ -25,7 +26,10 @@ defmodule When.Interpreter.Test do
                    {"!=", {:keyword, "result_reason"}, "skipped"}}},
     {"and", {"=~", {:keyword, "pull_request"}, ".*"}, {"=", {:keyword, "result"}, "passed"}},
     {"and", {:fun, :test_fun_0, []}, {"=", {:fun, :test_fun_1, ["master"]},
-                                           {:fun, :test_fun_2, ["master", 0]}}}
+                                           {:fun, :test_fun_2, ["master", 0]}}},
+    {"and", {"or", {:fun, :test_fun_3, [[1, 2], [["a", "b"], []]]},
+                   {"=", {:keyword, "branch"},"master"}},
+            [1.0, "uiop"]},
   ]
 
   @test_params_examples [
@@ -42,11 +46,11 @@ defmodule When.Interpreter.Test do
   ]
 
   @expected_results [
-    [true, false, false, true, true, true, true, true, false],
-    [true, false, false, false, false, false, true, true, true],
-    [true, false, false, false, false, false, true, true, false],
-    [true, false, false, true, true, true, false, false, false],
-    [true, false, false, false, false, true, true, false, false],
+    [true, false, false, true, true, true, true, true, false, true],
+    [true, false, false, false, false, false, true, true, true, false],
+    [true, false, false, false, false, false, true, true, false, true],
+    [true, false, false, true, true, true, false, false, false, true],
+    [true, false, false, false, false, true, true, false, false, true],
   ]
 
   test "test interpreter behavior for various asts and parmas examples" do
@@ -113,4 +117,6 @@ defmodule When.Interpreter.Test do
   end
 
   def test_fun_2(_branch, _int, _params), do: {:error, "Second parameter must be integer."}
+
+  def test_fun_3(_list_1, _list_2, _params), do: {:ok, false}
 end

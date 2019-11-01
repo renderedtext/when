@@ -21,6 +21,10 @@ defmodule When.Interpreter do
         -> false
       str when is_binary(str) and str != "false"
         -> true
+      list when is_list(list) and length(list) == 0
+        -> false
+      list when is_list(list) and length(list) > 0
+        -> true
       error -> error
     end
   end
@@ -39,6 +43,7 @@ defmodule When.Interpreter do
   defp evaluate_(string, _params, _opts) when is_binary(string), do: string
   defp evaluate_(integer, _params, _opts) when is_integer(integer), do: integer
   defp evaluate_(float, _params, _opts) when is_float(float), do: float
+  defp evaluate_(list, _params, _opts) when is_list(list), do: list
 
   defp evaluate_({:fun, name, f_params}, params, opts) do
     f_params
