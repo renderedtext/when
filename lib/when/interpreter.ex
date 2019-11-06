@@ -25,6 +25,10 @@ defmodule When.Interpreter do
         -> false
       list when is_list(list) and length(list) > 0
         -> true
+      map when is_map(map) and map_size(map) == 0
+        -> false
+      map when is_map(map) and map_size(map) > 0
+        -> true
       error -> error
     end
   end
@@ -44,6 +48,7 @@ defmodule When.Interpreter do
   defp evaluate_(integer, _params, _opts) when is_integer(integer), do: integer
   defp evaluate_(float, _params, _opts) when is_float(float), do: float
   defp evaluate_(list, _params, _opts) when is_list(list), do: list
+  defp evaluate_(map, _params, _opts) when is_map(map), do: map
 
   defp evaluate_({:fun, name, f_params}, params, opts) do
     f_params

@@ -19,6 +19,7 @@ defmodule When.Parser.Test do
     "(some_fun() or (branch = 'master' and tag =~ 'v1.*')) AND true",
     "branch = 'master' and some_fun([1, 'asd'], []) or [false]",
     "some_fun([[1, 2], ['a', 'b']], false)",
+    "some_fun({}, {a: 12}, {a: {c: 3}, b: [1, 2]}) or [{a: 1, b: 2, a: 5}]",
   ]
 
   @expected_tokens [
@@ -90,6 +91,16 @@ defmodule When.Parser.Test do
       {:',',  1}, {:integer, 1, 2}, {:']',  1}, {:',',  1}, {:'[',  1}, {:string, 1, "a"},
       {:',',  1}, {:string, 1, "b"}, {:']',  1}, {:']',  1}, {:',',  1},
       {:boolean, 1, false}, {:')',  1}
+    ],
+    [
+      {:identifier, 1, :some_fun}, {:'(',  1}, {:'{',  1}, {:'}',  1}, {:',',  1},
+      {:'{',  1}, {:map_key, 1, :a}, {:integer, 1, 12}, {:'}',  1}, {:',',  1},
+      {:'{',  1}, {:map_key, 1, :a}, {:'{',  1}, {:map_key, 1, :c}, {:integer, 1, 3},
+      {:'}',  1}, {:',',  1}, {:map_key, 1, :b}, {:'[',  1}, {:integer, 1, 1}, {:',',  1},
+      {:integer, 1, 2}, {:']',  1}, {:'}',  1}, {:')',  1}, {:bool_operator, 1, "or"},
+      {:'[',  1}, {:'{',  1}, {:map_key, 1, :a}, {:integer, 1, 1}, {:',',  1},
+      {:map_key, 1, :b}, {:integer, 1, 2}, {:',',  1}, {:map_key, 1, :a},
+      {:integer, 1, 5}, {:'}',  1}, {:']',  1},
     ]
   ]
 
@@ -134,6 +145,9 @@ defmodule When.Parser.Test do
           [false]},
 
    {:fun, :some_fun, [[[1, 2], ["a", "b"]], false]},
+
+   {"or", {:fun, :some_fun, [%{}, %{a: 12}, %{a: %{c: 3}, b: [1, 2]}]},
+          [%{a: 5, b: 2}]}
   ]
 
   test "test parser behavior for various token examples" do
@@ -167,6 +181,10 @@ defmodule When.Parser.Test do
     "['asd', 1",
     "[branch = 'master']",
     "[true or false]",
+    "{a: 123",
+    "{a 123}",
+    "{branch = 'master'}",
+    "{true or false}",
   ]
 
   @invalid_tokens [
@@ -197,6 +215,16 @@ defmodule When.Parser.Test do
       {:'[',  1}, {:boolean, 1, true}, {:bool_operator, 1, "or"},
       {:boolean, 1, false}, {:']',  1}
     ],
+    [{:'{',  1}, {:map_key, 1, :a}, {:integer, 1, 123}],
+    [{:'{',  1}, {:identifier, 1, :a}, {:integer, 1, 123}, {:'}', 1}],
+    [
+      {:'{',  1}, {:keyword, 1, "branch"}, {:operator, 1, "="},
+      {:string, 1, "master"}, {:'}',  1}
+    ],
+    [
+      {:'{',  1}, {:boolean, 1, true}, {:bool_operator, 1, "or"},
+      {:boolean, 1, false}, {:'}',  1}
+    ],
   ]
 
   @error_messages [
@@ -212,6 +240,10 @@ defmodule When.Parser.Test do
     "Invalid or incomplete expression at the end of the line.",
     "Invalid expression on the left of 'branch' operator.",
     "Invalid expression on the left of 'or' operator.",
+    "Invalid or incomplete expression at the end of the line.",
+    "Invalid expression on the left of 'a'.",
+    "Invalid expression on the left of 'branch' operator.",
+    "Invalid expression on the left of 'true'.",
   ]
 
   test "parser returns error when invald token sequence is given" do

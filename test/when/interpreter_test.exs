@@ -8,6 +8,7 @@ defmodule When.Interpreter.Test do
     Application.put_env(:when, :test_fun_1, {__MODULE__, :test_fun_1, 1})
     Application.put_env(:when, :test_fun_2, {__MODULE__, :test_fun_2, 2})
     Application.put_env(:when, :test_fun_3, {__MODULE__, :test_fun_3, 2})
+    Application.put_env(:when, :test_fun_4, {__MODULE__, :test_fun_4, 4})
 
     :ok
   end
@@ -30,6 +31,8 @@ defmodule When.Interpreter.Test do
     {"and", {"or", {:fun, :test_fun_3, [[1, 2], [["a", "b"], []]]},
                    {"=", {:keyword, "branch"},"master"}},
             [1.0, "uiop"]},
+    {"or", {:fun, :test_fun_4, [%{}, %{a: "dev"}, %{b: %{c: [1, 2]}}, [1, %{d: 3}]]},
+           {"=", {:keyword, "tag"}, "v2.0"}},
   ]
 
   @test_params_examples [
@@ -46,11 +49,11 @@ defmodule When.Interpreter.Test do
   ]
 
   @expected_results [
-    [true, false, false, true, true, true, true, true, false, true],
-    [true, false, false, false, false, false, true, true, true, false],
-    [true, false, false, false, false, false, true, true, false, true],
-    [true, false, false, true, true, true, false, false, false, true],
-    [true, false, false, false, false, true, true, false, false, true],
+    [true, false, false, true, true, true, true, true, false, true, false],
+    [true, false, false, false, false, false, true, true, true, false, true],
+    [true, false, false, false, false, false, true, true, false, true, true],
+    [true, false, false, true, true, true, false, false, false, true, false],
+    [true, false, false, false, false, true, true, false, false, true, true],
   ]
 
   test "test interpreter behavior for various asts and parmas examples" do
@@ -119,4 +122,9 @@ defmodule When.Interpreter.Test do
   def test_fun_2(_branch, _int, _params), do: {:error, "Second parameter must be integer."}
 
   def test_fun_3(_list_1, _list_2, _params), do: {:ok, false}
+
+  def test_fun_4(_map_1, %{a: branch}, _map_3, _map_4, params),
+    do: {:ok, params["branch"] == branch}
+
+  def test_fun_4(_list_1, _list_2, _params), do: {:ok, false}
 end

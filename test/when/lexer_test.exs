@@ -15,6 +15,7 @@ defmodule When.Lexer.Test do
     "(pull_request =~ '.*' and result = 'passed') or PULL_REQUEST !~ '.*'",
     "some_fun('abc', 123, 45.67, true) or false",
     "some_fun([123, 45.67]) or [false] and []",
+    "some_fun('a', {b: 123}, [false]) or {}",
   ]
 
   @expected_example_results [
@@ -65,6 +66,12 @@ defmodule When.Lexer.Test do
       {:',',  1}, {:float, 1, 45.67}, {:']',  1}, {:')',  1}, {:bool_operator, 1, "or"},
       {:'[',  1}, {:boolean, 1, false}, {:']',  1}, {:bool_operator, 1, "and"},
       {:'[',  1}, {:']',  1}
+    ],
+    [
+      {:identifier, 1, :some_fun}, {:'(',  1}, {:string, 1, "a"}, {:',',  1}, {:'{',  1},
+      {:map_key, 1, :b}, {:integer, 1, 123}, {:'}',  1}, {:',',  1}, {:'[',  1},
+      {:boolean, 1, false}, {:']',  1}, {:')',  1}, {:bool_operator, 1, "or"},
+      {:'{',  1}, {:'}',  1},
     ]
   ]
 
@@ -80,20 +87,22 @@ defmodule When.Lexer.Test do
 
   @invald_strings [
     "branch ! = 'bad operator'",
-    "{branch = 'unsupported-brackets'} and true",
     "# branch = 'unsupported-characters'",
     "_identifier_needs_to_start_with_lettter(123)",
     "cant_contain_&^('identifier only accepts alfa-numerics, uderscores and dashes')",
-    "fun(123.0) and invalid_number(123.456.2323)"
+    "fun(123.0) and invalid_number(123.456.2323)",
+    "{_map_key_needs_to_start_with_lettter: 123}",
+    "{map_key_cant_contain_&^: 'it only accepts alfa-numerics, uderscores and dashes'}"
   ]
 
   @error_messages [
     "Illegal characters: '! '.",
-    "Illegal characters: '{'.",
     "Illegal characters: '#'.",
     "Illegal characters: '_'.",
     "Illegal characters: '&'.",
-    "Illegal characters: '.'."
+    "Illegal characters: '.'.",
+    "Illegal characters: '_'.",
+    "Illegal characters: '&'.",
   ]
 
   test "lexer returns error when invalid string is given" do
