@@ -18,6 +18,7 @@ INTEGER = {IntegerPart}
 FLOAT = {IntegerPart}{FractionalPart}
 
 IDENTIFIER = [a-zA-Z][a-zA-Z0-9_\-]*
+MAP_KEY = [a-zA-Z][a-zA-Z0-9_\-]*:
 
 Rules.
 
@@ -27,6 +28,8 @@ Rules.
 \)              : {token, {')',  TokenLine}}.
 \[              : {token, {'[',  TokenLine}}.
 \]              : {token, {']',  TokenLine}}.
+\{              : {token, {'{',  TokenLine}}.
+\}              : {token, {'}',  TokenLine}}.
 ,               : {token, {',',  TokenLine}}.
 {KEYWORD}       : {token, {keyword,  TokenLine, to_lowercase_binary(TokenChars)}}.
 {BOOLEAN}       : {token, {boolean,  TokenLine, to_boolean(TokenChars)}}.
@@ -34,12 +37,16 @@ Rules.
 {INTEGER}       : {token, {integer, TokenLine, list_to_integer(TokenChars)}}.
 {FLOAT}         : {token, {float, TokenLine, list_to_float(TokenChars)}}.
 {IDENTIFIER}    : {token, {identifier, TokenLine, to_atom(TokenChars)}}.
+{MAP_KEY}       : {token, {map_key, TokenLine, extract_map_key(TokenChars)}}.
 {WHITESPACE}+   : skip_token.
 
 Erlang code.
 
 extract_string(Chars) ->
     list_to_binary(lists:sublist(Chars, 2, length(Chars) - 2)).
+
+extract_map_key(Chars) ->
+    erlang:binary_to_atom(list_to_binary(lists:sublist(Chars, 1, length(Chars) - 1)), utf8).
 
 to_lowercase_binary(Chars) ->
     string:lowercase(list_to_binary(Chars)).
