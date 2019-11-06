@@ -7,6 +7,7 @@ defmodule When.Test do
     Application.put_env(:when, :test_fun_2, {__MODULE__, :test_fun_2, 2})
     Application.put_env(:when, :failing_fun, {__MODULE__, :failing_fun, 1})
     Application.put_env(:when, :test_fun_3, {__MODULE__, :test_fun_3, 2})
+    Application.put_env(:when, :test_fun_4, {__MODULE__, :test_fun_4, 4})
 
     :ok
   end
@@ -23,6 +24,7 @@ defmodule When.Test do
     "pull_request =~ '.*' and result = 'passed'",
     "test_fun_0() and (test_fun_1('master') = test_fun_2('master', 0))",
     "(test_fun_3([1, 2], [['a', 'b'], []]) or branch = 'master') and [1.0, 'uiop']",
+    "test_fun_4({}, {a: 'dev'}, {b: {c: [1, 2]}}, [1, {a: 2}]) or tag = 'v2.0'",
   ]
 
   @valid_params_examples [
@@ -39,11 +41,11 @@ defmodule When.Test do
     ]
 
     @expected_results [
-      [true, false, false, true, true, true, true, true, false, true],
-      [true, false, false, false, false, false, true, true, true, false],
-      [true, false, false, false, false, false, true, true, false, true],
-      [true, false, false, true, true, true, false, false, false, true],
-      [true, false, false, false, false, true, true, false, false, true],
+      [true, false, false, true, true, true, true, true, false, true, false],
+      [true, false, false, false, false, false, true, true, true, false, true],
+      [true, false, false, false, false, false, true, true, false, true, true],
+      [true, false, false, true, true, true, false, false, false, true, false],
+      [true, false, false, false, false, true, true, false, false, true, true],
     ]
 
   test "test module top level behavior for various string and pramas combination" do
@@ -83,7 +85,14 @@ defmodule When.Test do
     "'true' or",
     "=",
     "(branch = 'master'",
-    "true or false)"
+    "true or false)",
+    "['asd', 1",
+    "[branch = 'master']",
+    "[true or false]",
+    "{a: 123",
+    "{a 123}",
+    "{branch = 'master'}",
+    "{true or false}",
   ]
 
   @error_messages_parser [
@@ -95,7 +104,14 @@ defmodule When.Test do
     "Invalid or incomplete expression at the end of the line.",
     "Invalid expression on the left of '=' operator.",
     "Invalid or incomplete expression at the end of the line.",
-    "Invalid expression on the left of ')'."
+    "Invalid expression on the left of ')'.",
+    "Invalid or incomplete expression at the end of the line.",
+    "Invalid expression on the left of 'branch' operator.",
+    "Invalid expression on the left of 'or' operator.",
+    "Invalid or incomplete expression at the end of the line.",
+    "Invalid expression on the left of 'a'.",
+    "Invalid expression on the left of 'branch' operator.",
+    "Invalid expression on the left of 'true'.",
   ]
 
   test "returns syntax error when given string with invalid syntax" do
@@ -113,20 +129,22 @@ defmodule When.Test do
 
   @invald_strings_lexer [
     "branch ! = 'bad operator'",
-    "{branch = 'unsupported-brackets'} and true",
     "# branch = 'unsupported-characters'",
     "_identifier_needs_to_start_with_lettter(123)",
     "cant_contain_&^('identifier only accepts alfa-numerics, uderscores and dashes')",
-    "fun(123.0) and invalid_number(123.456.2323)"
+    "fun(123.0) and invalid_number(123.456.2323)",
+    "{_map_key_needs_to_start_with_lettter: 123}",
+    "{map_key_cant_contain_&^: 'it only accepts alfa-numerics, uderscores and dashes'}"
   ]
 
   @error_messages_lexer [
     "Illegal characters: '! '.",
-    "Illegal characters: '{'.",
     "Illegal characters: '#'.",
     "Illegal characters: '_'.",
     "Illegal characters: '&'.",
-    "Illegal characters: '.'."
+    "Illegal characters: '.'.",
+    "Illegal characters: '_'.",
+    "Illegal characters: '&'.",
   ]
 
   test "lexer returns error when invalid string is given" do
@@ -172,4 +190,9 @@ defmodule When.Test do
   def failing_fun(_param, _params), do: {:error, "This always fails."}
 
   def test_fun_3(_list_1, _list_2, _params), do: {:ok, false}
+
+  def test_fun_4(_map_1, %{a: branch}, _map_3, _map_4, params),
+    do: {:ok, params["branch"] == branch}
+
+  def test_fun_4(_list_1, _list_2, _params), do: {:ok, false}
 end
