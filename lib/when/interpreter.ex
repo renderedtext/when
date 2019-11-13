@@ -109,11 +109,11 @@ defmodule When.Interpreter do
   end
 
   defp evaluate_fun_(error = {:error, _msg}, _fun_p, _opts), do: error
-  defp evaluate_fun_({module, fun, cardinality}, {f_params, name, params}, opts) do
-    if length(f_params) == cardinality do
+  defp evaluate_fun_({module, fun, cardinalities}, {f_params, name, params}, opts) do
+    if length(f_params) in cardinalities do
       call_function(module, fun, f_params ++ [params], opts)
     else
-      {:error, "Function '#{name}' accepts #{cardinality} parameter(s)"
+      {:error, "Function '#{name}' accepts #{to_str(cardinalities)} parameter(s)"
                 <> " and was provided with #{length(f_params)}."}
     end
   end
@@ -147,5 +147,11 @@ defmodule When.Interpreter do
   def or_func(first, second), do: first or second
 
   defp to_str(val) when is_binary(val), do: val
+  defp to_str([elem | list]) when is_integer(elem) and is_list(list) and length(list) >= 2 do
+    "#{elem}, #{to_str(list)}"
+  end
+  defp to_str(list) when is_list(list) and length(list) == 2,
+    do: "#{Enum.at(list, 0)} or #{Enum.at(list, 1)}"
+  defp to_str(list) when is_list(list) and length(list) == 1, do: "#{Enum.at(list, 0)}"
   defp to_str(val), do: "#{inspect val}"
 end
