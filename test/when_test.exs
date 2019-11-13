@@ -2,12 +2,12 @@ defmodule When.Test do
   use ExUnit.Case
 
   setup do
-    Application.put_env(:when, :test_fun_0, {__MODULE__, :test_fun_0, 0})
-    Application.put_env(:when, :test_fun_1, {__MODULE__, :test_fun_1, 1})
-    Application.put_env(:when, :test_fun_2, {__MODULE__, :test_fun_2, 2})
-    Application.put_env(:when, :failing_fun, {__MODULE__, :failing_fun, 1})
-    Application.put_env(:when, :test_fun_3, {__MODULE__, :test_fun_3, 2})
-    Application.put_env(:when, :test_fun_4, {__MODULE__, :test_fun_4, 4})
+    Application.put_env(:when, :test_fun_0, {__MODULE__, :test_fun_0, [0]})
+    Application.put_env(:when, :test_fun_1, {__MODULE__, :test_fun_1, [1]})
+    Application.put_env(:when, :test_fun_2, {__MODULE__, :test_fun_2, [2]})
+    Application.put_env(:when, :failing_fun, {__MODULE__, :failing_fun, [1]})
+    Application.put_env(:when, :test_fun_3, {__MODULE__, :test_fun_3, [2]})
+    Application.put_env(:when, :test_fun_4, {__MODULE__, :test_fun_4, [4]})
 
     :ok
   end

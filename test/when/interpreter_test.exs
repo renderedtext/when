@@ -4,11 +4,11 @@ defmodule When.Interpreter.Test do
   alias When.Interpreter
 
   setup do
-    Application.put_env(:when, :test_fun_0, {__MODULE__, :test_fun_0, 0})
-    Application.put_env(:when, :test_fun_1, {__MODULE__, :test_fun_1, 1})
-    Application.put_env(:when, :test_fun_2, {__MODULE__, :test_fun_2, 2})
-    Application.put_env(:when, :test_fun_3, {__MODULE__, :test_fun_3, 2})
-    Application.put_env(:when, :test_fun_4, {__MODULE__, :test_fun_4, 4})
+    Application.put_env(:when, :test_fun_0, {__MODULE__, :test_fun_0, [0]})
+    Application.put_env(:when, :test_fun_1, {__MODULE__, :test_fun_1, [0, 1, 3]})
+    Application.put_env(:when, :test_fun_2, {__MODULE__, :test_fun_2, [2]})
+    Application.put_env(:when, :test_fun_3, {__MODULE__, :test_fun_3, [2]})
+    Application.put_env(:when, :test_fun_4, {__MODULE__, :test_fun_4, [4]})
 
     :ok
   end
@@ -33,6 +33,7 @@ defmodule When.Interpreter.Test do
             [1.0, "uiop"]},
     {"or", {:fun, :test_fun_4, [%{}, %{a: "dev"}, %{b: %{c: [1, 2]}}, [1, %{d: 3}]]},
            {"=", {:keyword, "tag"}, "v2.0"}},
+    {"and", {:fun, :test_fun_1, []}, {:fun, :test_fun_1, ["master"]}},
   ]
 
   @test_params_examples [
@@ -49,11 +50,11 @@ defmodule When.Interpreter.Test do
   ]
 
   @expected_results [
-    [true, false, false, true, true, true, true, true, false, true, false],
-    [true, false, false, false, false, false, true, true, true, false, true],
-    [true, false, false, false, false, false, true, true, false, true, true],
-    [true, false, false, true, true, true, false, false, false, true, false],
-    [true, false, false, false, false, true, true, false, false, true, true],
+    [true, false, false, true, true, true, true, true, false, true, false, true],
+    [true, false, false, false, false, false, true, true, true, false, true, false],
+    [true, false, false, false, false, false, true, true, false, true, true, true],
+    [true, false, false, true, true, true, false, false, false, true, false, true],
+    [true, false, false, false, false, true, true, false, false, true, true, true],
   ]
 
   test "test interpreter behavior for various asts and parmas examples" do
@@ -98,7 +99,7 @@ defmodule When.Interpreter.Test do
 
     errors =
       ["Function with name 'invalid_fun_name' is not found.",
-       "Function 'test_fun_1' accepts 1 parameter(s) and was provided with 2.",
+       "Function 'test_fun_1' accepts 0, 1 or 3 parameter(s) and was provided with 2.",
        "Function 'test_fun_2' returned error: Second parameter must be integer."]
 
     examples
@@ -111,6 +112,7 @@ defmodule When.Interpreter.Test do
 
   def test_fun_0(_params), do: {:ok, true}
 
+  def test_fun_1(_params), do: {:ok, true}
   def test_fun_1(branch, params) do
     {:ok, params["branch"] == branch}
   end
