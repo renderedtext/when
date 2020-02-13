@@ -8,6 +8,7 @@ defmodule When.Test do
     Application.put_env(:when, :failing_fun, {__MODULE__, :failing_fun, [1]})
     Application.put_env(:when, :test_fun_3, {__MODULE__, :test_fun_3, [2]})
     Application.put_env(:when, :test_fun_4, {__MODULE__, :test_fun_4, [4]})
+    Application.put_env(:when, :test_fun_atom_err, {__MODULE__, :test_fun_atom_err, [0]})
 
     :ok
   end
@@ -160,6 +161,13 @@ defmodule When.Test do
     end)
   end
 
+  test "when 'dry_run: true' option is given => function evaluates to false" do
+    string = "test_fun_0() and true"
+    params = @valid_params_examples |> Enum.at(0)
+
+    assert {:ok, false} = When.evaluate(string, params, dry_run: true)
+  end
+
   test "when 'dry_run: true' option is given => funtions are not executed" do
     string = "failing_fun('param 1')"
     params = @valid_params_examples |> Enum.at(0)
@@ -173,6 +181,14 @@ defmodule When.Test do
 
     assert {:error, msg} = When.evaluate(string, params, dry_run: true)
     assert msg == "Function 'failing_fun' accepts 1 parameter(s) and was provided with 2."
+  end
+
+  test "when function retrns {:error, {atom, message}} => same structure is the end result" do
+    string = "test_fun_atom_err()"
+    params = @valid_params_examples |> Enum.at(0)
+
+    assert {:error, {:malformed, message}} = When.evaluate(string, params)
+    assert message == "Function 'test_fun_atom_err' returned error: Test"
   end
 
   def test_fun_0(_params), do: {:ok, true}
@@ -195,4 +211,6 @@ defmodule When.Test do
     do: {:ok, params["branch"] == branch}
 
   def test_fun_4(_list_1, _list_2, _params), do: {:ok, false}
+
+  def test_fun_atom_err(_params), do: {:error, {:malformed, "Test"}}
 end

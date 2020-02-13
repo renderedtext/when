@@ -118,11 +118,16 @@ defmodule When.Interpreter do
     end
   end
 
-  defp call_function(_mod, _fun, _f_params, [dry_run: true]), do: {:ok, false}
+  defp call_function(_mod, _fun, _f_params, [dry_run: true]), do: false
   defp call_function(module, fun, f_params, _opts) do
     case apply(module, fun, f_params) do
       {:ok, value} -> value
+
+      {:error, {err_type, e}} when is_atom(err_type) ->
+          {:error, {err_type, "Function '#{fun}' returned error: #{to_str(e)}"}}
+
       {:error, e} -> {:error, "Function '#{fun}' returned error: #{to_str(e)}"}
+
       error -> {:error, "Function '#{fun}' returned unsupported value: #{to_str(error)}"}
     end
   end
