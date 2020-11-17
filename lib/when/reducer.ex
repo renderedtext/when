@@ -37,6 +37,12 @@ defmodule When.Reducer do
     end
   end
 
+  def reduce({:fun, name, fparams}, input, result) do
+    result
+    |> Result.add_missing_input({:fun, name, fparams})
+    |> Result.set_expression("#{name}(#{inspect(fparams)})")
+  end
+
   def reduce({op, first, second}, input, result) when op in @binary_ops do
     l_result = reduce(first, input, result)
     r_result = reduce(second, input, result)
@@ -72,14 +78,14 @@ defmodule When.Reducer do
           end
 
         "=~" ->
-          if Regex.match?(~r/#{r_result.ast}/, l_result.ast) do
+          if regex_match?(r_result.ast, l_result.ast) do
             result |> Result.set_ast(true) |> Result.set_expression("true")
           else
             result |> Result.set_ast(false) |> Result.set_expression("false")
           end
 
         "!~" ->
-          if not Regex.match?(~r/#{r_result.ast}/, l_result.ast) do
+          if not regex_match?(r_result.ast, l_result.ast) do
             result |> Result.set_ast(true) |> Result.set_expression("true")
           else
             result |> Result.set_ast(false) |> Result.set_expression("false")
@@ -190,23 +196,9 @@ defmodule When.Reducer do
     end
   end
 
-  def apply_opp(error = {:error, _msg}, _r_value, _module, _func), do: error
-  def apply_opp(_l_value, error = {:error, _msg}, _module, _func), do: error
-  def apply_opp(_pattern, "", _module, :match?), do: false
-  def apply_opp(_pattern, "", _module, :not_match?), do: true
-
-  def apply_opp(l_value, r_value, module, func) do
-    apply(module, func, [l_value, r_value])
+  def regex_match?(pattern, value) do
+    value != "" and Regex.match?(~r/#{pattern}/, value)
   end
-
-  # Helper matching function
-
-  def not_match?(pattern, string), do: not Regex.match?(pattern, string)
-
-  ## This is required because both Kernel.and and Kernel.or are macros, so they can
-  ## not be called directly from apply/3
-  def and_func(first, second), do: first and second
-  def or_func(first, second), do: first or second
 
   def to_str(val) when is_binary(val), do: val
 
