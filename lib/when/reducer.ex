@@ -44,14 +44,22 @@ defmodule When.Reducer do
     if l_result.missing_input == [] && r_result.missing_input == [] do
       case op do
         "and" ->
-          Result.set_ast(result, "false")
+          if Result.to_bool(l_result) and Result.to_bool(r_result) do
+            result |> Result.set_ast(true) |> Result.set_expression("true")
+          else
+            result |> Result.set_ast(false) |> Result.set_expression("false")
+          end
 
         "or" ->
-          Result.set_ast(result, "false")
+          if Result.to_bool(l_result) or Result.to_bool(r_result) do
+            result |> Result.set_ast(true) |> Result.set_expression("true")
+          else
+            result |> Result.set_ast(false) |> Result.set_expression("false")
+          end
 
         "=" ->
           if l_result.ast == r_result.ast do
-            result |> Result.set_ast(false) |> Result.set_expression("true")
+            result |> Result.set_ast(true) |> Result.set_expression("true")
           else
             result |> Result.set_ast(false) |> Result.set_expression("false")
           end
@@ -78,6 +86,7 @@ defmodule When.Reducer do
           end
 
         _ ->
+          # TODO
           false
       end
     else
