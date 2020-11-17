@@ -91,10 +91,23 @@ defmodule When.Reducer do
       end
     else
       result = %{result | missing_input: l_result.missing_input ++ r_result.missing_input}
+      result = result |> Result.set_ast({op, l_result.ast, r_result.ast})
 
-      result
-      |> Result.set_ast({op, l_result.ast, r_result.ast})
-      |> Result.set_expression("#{l_result.expression} #{op} #{r_result.expression}")
+      l_exp =
+        if match?({op, _, _}, l_result.ast) and op in @binary_ops do
+          "(#{l_result.expression})"
+        else
+          l_result.expression
+        end
+
+      r_exp =
+        if match?({op, _, _}, r_result.ast) and op in @binary_ops do
+          "(#{r_result.expression})"
+        else
+          r_result.expression
+        end
+
+      result |> Result.set_expression("#{l_exp} #{op} #{r_exp}")
     end
   end
 

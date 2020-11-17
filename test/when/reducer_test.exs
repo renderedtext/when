@@ -112,7 +112,7 @@ defmodule When.Interpreter.Test do
     assert op == "and"
     assert left == {"=", {:keyword, "branch"}, "master"}
     assert right == {"=", {:keyword, "result"}, "passed"}
-    assert result.expression == "branch = 'master' and result = 'passed'"
+    assert result.expression == "(branch = 'master') and (result = 'passed')"
   end
 
   test "reduces or operations" do
@@ -144,10 +144,29 @@ defmodule When.Interpreter.Test do
 
     result = Reducer.reduce(ast, %{})
     assert result.missing_input == [{:keyword, "branch"}, {:keyword, "result"}]
-    assert {op, left, right} = result.ast
-    assert op == "or"
+    assert {"or", left, right} = result.ast
     assert left == {"=", {:keyword, "branch"}, "master"}
     assert right == {"=", {:keyword, "result"}, "passed"}
-    assert result.expression == "branch = 'master' or result = 'passed'"
+    assert result.expression == "(branch = 'master') or (result = 'passed')"
+  end
+
+  test "reduces bracketed ops" do
+    {:ok, ast} = When.ast("(branch = 'master' and result = 'passed') or result = 'failed'")
+
+    result = Reducer.reduce(ast, %{})
+
+    assert result.missing_input == [
+             {:keyword, "branch"},
+             {:keyword, "result"},
+             {:keyword, "result"}
+           ]
+
+    assert {"or", {"and", and_left, and_right}, or_right} = result.ast
+    assert and_left == {"=", {:keyword, "branch"}, "master"}
+    assert and_right == {"=", {:keyword, "result"}, "passed"}
+    assert or_right == {"=", {:keyword, "result"}, "failed"}
+
+    assert result.expression ==
+             "((branch = 'master') and (result = 'passed')) or (result = 'failed')"
   end
 end
