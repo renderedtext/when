@@ -44,7 +44,7 @@ defmodule When.Reducer do
     def add(inputs, :fun, name, params, result) do
       entry = %{"name" => name, "params" => params, "result" => result}
 
-      %{inputs | "keywords" => inputs["functions"] ++ [entry]}
+      %{inputs | "functions" => inputs["functions"] ++ [entry]}
     end
 
     def get_keyword(inputs, name) do
@@ -74,19 +74,27 @@ defmodule When.Reducer do
   end
 
   def reduce({:keyword, keyword}, inputs, result) when keyword in @keywords do
-    input = Inputs.get_keyword(inputs, keyword)
+    kw = Inputs.get_keyword(inputs, keyword)
 
-    if input == nil do
+    if kw == nil do
       result
       |> Result.add_missing_input({:keyword, keyword})
       |> Result.set_ast({:keyword, keyword})
     else
-      result |> Result.set_ast(input)
+      result |> Result.set_ast(kw)
     end
   end
 
-  def reduce({:fun, name, fparams}, input, result) do
-    result |> Result.add_missing_input({:fun, name, fparams})
+  def reduce({:fun, name, fparams}, inputs, result) do
+    fun = Inputs.get_function(inputs, Atom.to_string(name), fparams)
+
+    if fun == nil do
+      result
+      |> Result.add_missing_input({:fun, name, fparams})
+      |> Result.set_ast({:fun, name, fparams})
+    else
+      result |> Result.set_ast(fun["result"])
+    end
   end
 
   def reduce({op, first, second}, input, result) when op in @binary_ops do
@@ -143,7 +151,8 @@ defmodule When.Reducer do
       end
     else
       result = %{result | missing_input: l_result.missing_input ++ r_result.missing_input}
-      result = result |> Result.set_ast({op, l_result.ast, r_result.ast})
+
+      result |> Result.set_ast({op, l_result.ast, r_result.ast})
     end
   end
 

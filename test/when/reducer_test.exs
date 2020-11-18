@@ -170,7 +170,7 @@ defmodule When.Interpreter.Test do
         |> Inputs.add(:keyword, "branch", "master")
         |> Inputs.add(:keyword, "result", "passed")
 
-      assert Reducer.reduce(ast).ast == true
+      assert Reducer.reduce(ast, inputs).ast == true
     end
 
     test "evaluating true and false" do
@@ -181,7 +181,7 @@ defmodule When.Interpreter.Test do
         |> Inputs.add(:keyword, "branch", "master")
         |> Inputs.add(:keyword, "result", "failed")
 
-      assert Reducer.reduce(ast).ast == false
+      assert Reducer.reduce(ast, inputs).ast == false
     end
 
     test "evaluating false and false" do
@@ -192,7 +192,7 @@ defmodule When.Interpreter.Test do
         |> Inputs.add(:keyword, "branch", "dev")
         |> Inputs.add(:keyword, "result", "failed")
 
-      assert Reducer.reduce(ast).ast == false
+      assert Reducer.reduce(ast, inputs).ast == false
     end
   end
 
@@ -216,7 +216,7 @@ defmodule When.Interpreter.Test do
         |> Inputs.add(:keyword, "branch", "master")
         |> Inputs.add(:keyword, "result", "passed")
 
-      assert Reducer.reduce(ast).ast == true
+      assert Reducer.reduce(ast, inputs).ast == true
     end
 
     test "evaluating true or false" do
@@ -227,7 +227,7 @@ defmodule When.Interpreter.Test do
         |> Inputs.add(:keyword, "branch", "master")
         |> Inputs.add(:keyword, "result", "failed")
 
-      assert Reducer.reduce(ast).ast == true
+      assert Reducer.reduce(ast, inputs).ast == true
     end
 
     test "evaluating false or false" do
@@ -238,7 +238,7 @@ defmodule When.Interpreter.Test do
         |> Inputs.add(:keyword, "branch", "dev")
         |> Inputs.add(:keyword, "result", "failed")
 
-      assert Reducer.reduce(ast).ast == false
+      assert Reducer.reduce(ast, inputs).ast == false
     end
   end
 
@@ -259,17 +259,23 @@ defmodule When.Interpreter.Test do
     assert or_right == {"=", {:keyword, "result"}, "failed"}
   end
 
-  test "reduces change_in expressions" do
-    {:ok, ast} = When.ast("change_in('lib')")
+  describe "functions" do
+    test "reduction with no inputs" do
+      {:ok, ast} = When.ast("change_in('lib')")
 
-    inputs =
-      Inputs.new()
-      |> Input.add(:fun, "change_in", ["lib"], true)
+      result = Reducer.reduce(ast)
 
-    result = Reducer.reduce(ast, inputs)
-    assert result.ast == true
+      assert result.missing_input == [{:fun, :change_in, ["lib"]}]
+    end
 
-    result = Reducer.reduce(ast)
-    assert result.missing_input == [{:fun, :change_in, ["lib"]}]
+    test "reduction with inputs" do
+      {:ok, ast} = When.ast("change_in('lib')")
+
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:fun, "change_in", ["lib"], true)
+
+      assert Reducer.reduce(ast, inputs).ast == true
+    end
   end
 end
