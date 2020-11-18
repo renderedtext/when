@@ -19,6 +19,7 @@ CONTAINER_ENV_VARS= \
 CMD?=/bin/bash
 
 setup:
+	$(MAKE) console USER=root CMD="mix local.hex --force"
 	$(MAKE) console USER=root CMD="mix deps.get"
 	$(MAKE) console USER=root CMD="mix deps.compile"
 
