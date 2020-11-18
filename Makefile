@@ -23,3 +23,6 @@ console:
 
 test:
 	$(MAKE) console USER=root MIX_ENV=test CMD="mix do local.hex --force, local.rebar --force, deps.get, test $(FILE)"
+
+escript.build:
+	$(MAKE) console USER=root CMD="mix escript.build"

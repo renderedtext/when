@@ -7,20 +7,20 @@ defmodule When.MixProject do
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      escript: escript()
     ]
   end
 
   def application do
-    [
-      extra_applications: [:logger]
-    ]
+    [extra_applications: [:logger]]
   end
 
-
   defp deps do
-    [
+    []
+  end
 
-    ]
+  defp escript do
+    [main_module: When.CLI]
   end
 end

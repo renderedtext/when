@@ -24,3 +24,6 @@ when-*.tar
 
 home_dir/
 log
+
+# escript build
+when
