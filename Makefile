@@ -18,6 +18,10 @@ CONTAINER_ENV_VARS= \
 
 CMD?=/bin/bash
 
+setup:
+	$(MAKE) console USER=root CMD="mix deps.get"
+	$(MAKE) console USER=root CMD="mix deps.compile"
+
 console:
 	docker run --network=host $(CONTAINER_ENV_VARS) $(INTERACTIVE_SESSION) $(CMD)
 

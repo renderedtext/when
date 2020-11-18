@@ -17,7 +17,7 @@ defmodule When.MixProject do
   end
 
   defp deps do
-    []
+    [{:poison, "~> 3.1"}]
   end
 
   defp escript do
