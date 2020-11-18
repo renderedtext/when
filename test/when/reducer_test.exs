@@ -2,149 +2,250 @@ defmodule When.Interpreter.Test do
   use ExUnit.Case
 
   alias When.{Reducer}
+  alias When.Reducer.{Inputs}
 
-  test "reduces equality" do
-    {:ok, ast} = When.ast("branch = 'master'")
+  describe "= operation" do
+    test "reduction without inputs" do
+      {:ok, ast} = When.ast("branch = 'master'")
 
-    result = Reducer.reduce(ast, %{"branch" => "master"})
-    assert result.missing_input == []
-    assert result.ast == true
+      result = Reducer.reduce(ast)
 
-    result = Reducer.reduce(ast, %{"branch" => "dev"})
-    assert result.missing_input == []
-    assert result.ast == false
+      assert result.missing_input == [{:keyword, "branch"}]
+      assert result.ast == {"=", {:keyword, "branch"}, "master"}
+    end
 
-    result = Reducer.reduce(ast, %{})
-    assert result.missing_input == [{:keyword, "branch"}]
-    assert result.ast == {"=", {:keyword, "branch"}, "master"}
+    test "equal values" do
+      {:ok, ast} = When.ast("branch = 'master'")
+
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "master")
+
+      assert Reducer.reduce(ast, inputs).ast == true
+    end
+
+    test "different values" do
+      {:ok, ast} = When.ast("branch = 'master'")
+
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "dev")
+
+      assert Reducer.reduce(ast, inputs).ast == false
+    end
   end
 
-  test "reduces inequality" do
-    {:ok, ast} = When.ast("branch != 'master'")
+  describe "!= operation" do
+    test "reduction without inputs" do
+      {:ok, ast} = When.ast("branch != 'master'")
 
-    result = Reducer.reduce(ast, %{"branch" => "master"})
-    assert result.missing_input == []
-    assert result.ast == false
+      result = Reducer.reduce(ast)
 
-    result = Reducer.reduce(ast, %{"branch" => "dev"})
-    assert result.missing_input == []
-    assert result.ast == true
+      assert result.missing_input == [{:keyword, "branch"}]
+      assert result.ast == {"!=", {:keyword, "branch"}, "master"}
+    end
 
-    result = Reducer.reduce(ast, %{})
-    assert result.missing_input == [{:keyword, "branch"}]
-    assert result.ast == {"!=", {:keyword, "branch"}, "master"}
+    test "equal values" do
+      {:ok, ast} = When.ast("branch != 'master'")
+
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "master")
+
+      assert Reducer.reduce(ast, inputs).ast == false
+    end
+
+    test "different values" do
+      {:ok, ast} = When.ast("branch != 'master'")
+
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "dev")
+
+      assert Reducer.reduce(ast, inputs).ast == true
+    end
   end
 
-  describe "regex" do
-    test "reduces regex match" do
+  describe "=~ operation" do
+    test "reduction without inputs" do
       {:ok, ast} = When.ast("branch =~ 'mast.*'")
 
-      result = Reducer.reduce(ast, %{"branch" => "master"})
-      assert result.missing_input == []
-      assert result.ast == true
-
-      result = Reducer.reduce(ast, %{"branch" => "dev"})
-      assert result.missing_input == []
-      assert result.ast == false
-
-      result = Reducer.reduce(ast, %{})
+      result = Reducer.reduce(ast)
       assert result.missing_input == [{:keyword, "branch"}]
       assert result.ast == {"=~", {:keyword, "branch"}, "mast.*"}
     end
 
-    test "reduces negative regex match" do
+    test "matched values" do
+      {:ok, ast} = When.ast("branch =~ 'mast.*'")
+
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "master")
+
+      assert Reducer.reduce(ast, inputs).ast == true
+    end
+
+    test "non-matching values" do
+      {:ok, ast} = When.ast("branch =~ 'mast.*'")
+
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "dev")
+
+      assert Reducer.reduce(ast, inputs).ast == false
+    end
+
+    # TODO
+    # test "empty values with regex matches" do
+    #   {:ok, ast1} = When.ast("branch =~ '.*'")
+    #   {:ok, ast2} = When.ast("branch !~ '.*'")
+
+    #   result = Reducer.reduce(ast1, %{"branch" => ""})
+    #   assert result.ast == false
+
+    #   result = Reducer.reduce(ast2, %{"branch" => ""})
+    #   assert result.ast == true
+    # end
+  end
+
+  describe "!~ operation" do
+    test "reduction without inputs" do
       {:ok, ast} = When.ast("branch !~ 'mast.*'")
 
-      result = Reducer.reduce(ast, %{"branch" => "master"})
-      assert result.missing_input == []
-      assert result.ast == false
-
-      result = Reducer.reduce(ast, %{"branch" => "dev"})
-      assert result.missing_input == []
-      assert result.ast == true
-
-      result = Reducer.reduce(ast, %{})
+      result = Reducer.reduce(ast)
       assert result.missing_input == [{:keyword, "branch"}]
       assert result.ast == {"!~", {:keyword, "branch"}, "mast.*"}
     end
 
-    test "empty values with regex matches" do
-      {:ok, ast1} = When.ast("branch =~ '.*'")
-      {:ok, ast2} = When.ast("branch !~ '.*'")
+    test "matched values" do
+      {:ok, ast} = When.ast("branch !~ 'mast.*'")
 
-      result = Reducer.reduce(ast1, %{"branch" => ""})
-      assert result.ast == false
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "master")
 
-      result = Reducer.reduce(ast2, %{"branch" => ""})
-      assert result.ast == true
+      assert Reducer.reduce(ast, inputs).ast == false
+    end
+
+    test "non-matching values" do
+      {:ok, ast} = When.ast("branch !~ 'mast.*'")
+
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "dev")
+
+      assert Reducer.reduce(ast, inputs).ast == true
+    end
+
+    # TODO
+    # test "empty values with regex matches" do
+    #   {:ok, ast1} = When.ast("branch =~ '.*'")
+    #   {:ok, ast2} = When.ast("branch !~ '.*'")
+
+    #   result = Reducer.reduce(ast1, %{"branch" => ""})
+    #   assert result.ast == false
+
+    #   result = Reducer.reduce(ast2, %{"branch" => ""})
+    #   assert result.ast == true
+    # end
+  end
+
+  describe "and operation" do
+    test "reduction without inputs" do
+      {:ok, ast} = When.ast("branch = 'master' and result = 'passed'")
+
+      result = Reducer.reduce(ast)
+
+      assert result.missing_input == [{:keyword, "branch"}, {:keyword, "result"}]
+      assert {"and", left, right} = result.ast
+      assert left == {"=", {:keyword, "branch"}, "master"}
+      assert right == {"=", {:keyword, "result"}, "passed"}
+    end
+
+    test "evaluating true and true" do
+      {:ok, ast} = When.ast("branch = 'master' and result = 'passed'")
+
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "master")
+        |> Inputs.add(:keyword, "result", "passed")
+
+      assert Reducer.reduce(ast).ast == true
+    end
+
+    test "evaluating true and false" do
+      {:ok, ast} = When.ast("branch = 'master' and result = 'passed'")
+
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "master")
+        |> Inputs.add(:keyword, "result", "failed")
+
+      assert Reducer.reduce(ast).ast == false
+    end
+
+    test "evaluating false and false" do
+      {:ok, ast} = When.ast("branch = 'master' and result = 'passed'")
+
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "dev")
+        |> Inputs.add(:keyword, "result", "failed")
+
+      assert Reducer.reduce(ast).ast == false
     end
   end
 
-  test "reduces and operations" do
-    {:ok, ast} = When.ast("branch = 'master' and result = 'passed'")
+  describe "or operation" do
+    test "reduction without inputs" do
+      {:ok, ast} = When.ast("branch = 'master' or result = 'passed'")
 
-    # true and true
-    result = Reducer.reduce(ast, %{"branch" => "master", "result" => "passed"})
-    assert result.missing_input == []
-    assert result.ast == true
+      result = Reducer.reduce(ast)
 
-    # true and false
-    result = Reducer.reduce(ast, %{"branch" => "master", "result" => "failed"})
-    assert result.missing_input == []
-    assert result.ast == false
+      assert result.missing_input == [{:keyword, "branch"}, {:keyword, "result"}]
+      assert {"or", left, right} = result.ast
+      assert left == {"=", {:keyword, "branch"}, "master"}
+      assert right == {"=", {:keyword, "result"}, "passed"}
+    end
 
-    # false and true
-    result = Reducer.reduce(ast, %{"branch" => "dev", "result" => "passed"})
-    assert result.missing_input == []
-    assert result.ast == false
+    test "evaluating true or true" do
+      {:ok, ast} = When.ast("branch = 'master' or result = 'passed'")
 
-    # false and false
-    result = Reducer.reduce(ast, %{"branch" => "dev", "result" => "failed"})
-    assert result.missing_input == []
-    assert result.ast == false
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "master")
+        |> Inputs.add(:keyword, "result", "passed")
 
-    result = Reducer.reduce(ast, %{})
-    assert result.missing_input == [{:keyword, "branch"}, {:keyword, "result"}]
-    assert {op, left, right} = result.ast
-    assert op == "and"
-    assert left == {"=", {:keyword, "branch"}, "master"}
-    assert right == {"=", {:keyword, "result"}, "passed"}
-  end
+      assert Reducer.reduce(ast).ast == true
+    end
 
-  test "reduces or operations" do
-    {:ok, ast} = When.ast("branch = 'master' or result = 'passed'")
+    test "evaluating true or false" do
+      {:ok, ast} = When.ast("branch = 'master' or result = 'passed'")
 
-    # true and true
-    result = Reducer.reduce(ast, %{"branch" => "master", "result" => "passed"})
-    assert result.missing_input == []
-    assert result.ast == true
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "master")
+        |> Inputs.add(:keyword, "result", "failed")
 
-    # true and false
-    result = Reducer.reduce(ast, %{"branch" => "master", "result" => "failed"})
-    assert result.missing_input == []
-    assert result.ast == true
+      assert Reducer.reduce(ast).ast == true
+    end
 
-    # false and true
-    result = Reducer.reduce(ast, %{"branch" => "dev", "result" => "passed"})
-    assert result.missing_input == []
-    assert result.ast == true
+    test "evaluating false or false" do
+      {:ok, ast} = When.ast("branch = 'master' or result = 'passed'")
 
-    # false and false
-    result = Reducer.reduce(ast, %{"branch" => "dev", "result" => "failed"})
-    assert result.missing_input == []
-    assert result.ast == false
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:keyword, "branch", "dev")
+        |> Inputs.add(:keyword, "result", "failed")
 
-    result = Reducer.reduce(ast, %{})
-    assert result.missing_input == [{:keyword, "branch"}, {:keyword, "result"}]
-    assert {"or", left, right} = result.ast
-    assert left == {"=", {:keyword, "branch"}, "master"}
-    assert right == {"=", {:keyword, "result"}, "passed"}
+      assert Reducer.reduce(ast).ast == false
+    end
   end
 
   test "reduces bracketed ops" do
     {:ok, ast} = When.ast("(branch = 'master' and result = 'passed') or result = 'failed'")
 
-    result = Reducer.reduce(ast, %{})
+    result = Reducer.reduce(ast)
 
     assert result.missing_input == [
              {:keyword, "branch"},
@@ -161,10 +262,14 @@ defmodule When.Interpreter.Test do
   test "reduces change_in expressions" do
     {:ok, ast} = When.ast("change_in('lib')")
 
-    result = Reducer.reduce(ast, %{})
-    assert result.missing_input == [{:fun, :change_in, ["lib"]}]
+    inputs =
+      Inputs.new()
+      |> Input.add(:fun, "change_in", ["lib"], true)
 
-    result = Reducer.reduce(ast, %{})
+    result = Reducer.reduce(ast, inputs)
+    assert result.ast == true
+
+    result = Reducer.reduce(ast)
     assert result.missing_input == [{:fun, :change_in, ["lib"]}]
   end
 end

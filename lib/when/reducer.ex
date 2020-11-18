@@ -27,17 +27,54 @@ defmodule When.Reducer do
     def to_bool(result), do: When.Ast.to_bool(result.ast)
   end
 
+  defmodule Inputs do
+    def new() do
+      %{
+        "keywords" => %{},
+        "functions" => []
+      }
+    end
+
+    def add(inputs, :keyword, name, value) do
+      keywords = Map.merge(inputs["keywords"], %{name => value})
+
+      %{inputs | "keywords" => keywords}
+    end
+
+    def add(inputs, :fun, name, params, result) do
+      entry = %{"name" => name, "params" => params, "result" => result}
+
+      %{inputs | "keywords" => inputs["functions"] ++ [entry]}
+    end
+
+    def get_keyword(inputs, name) do
+      Map.get(inputs["keywords"], name)
+    end
+
+    def get_function(inputs, name, params) do
+      inputs["functions"]
+      |> Enum.find(fn el ->
+        el["name"] == name && el["params"] == params
+      end)
+    end
+  end
+
   alias __MODULE__.Result
+  alias __MODULE__.Inputs
 
   @keywords ~w(branch tag pull_request result result_reason)
   @binary_ops ["and", "or", "=", "!=", "=~", "!~"]
 
-  def reduce(ast, params) do
-    reduce(ast, params, Result.new())
+  def reduce(ast) do
+    reduce(ast, Inputs.new(), Result.new())
   end
 
-  def reduce({:keyword, keyword}, params, result) when keyword in @keywords do
-    input = Map.get(params, keyword)
+  def reduce(ast, inputs) do
+    reduce(ast, inputs, Result.new())
+  end
+
+  def reduce({:keyword, keyword}, inputs, result) when keyword in @keywords do
+    input = Inputs.get_keyword(inputs, keyword)
 
     if input == nil do
       result
@@ -113,12 +150,12 @@ defmodule When.Reducer do
   def reduce("false", _params, result), do: Result.set_ast(result, false)
   def reduce("true", _params, result), do: Result.set_ast(result, true)
 
-  def reduce(v, _params, result) when is_boolean(v), do: result |> Result.set_ast(v)
-  def reduce(v, _params, result) when is_binary(v), do: result |> Result.set_ast(v)
-  def reduce(v, _params, result) when is_integer(v), do: result |> Result.set_ast(v)
-  def reduce(v, _params, result) when is_float(v), do: result |> Result.set_ast(v)
-  def reduce(v, _params, result) when is_list(v), do: result |> Result.set_ast(v)
-  def reduce(v, _params, result) when is_map(v), do: result |> Result.set_ast(v)
+  def reduce(v, _params, result) when is_boolean(v), do: Result.set_ast(result, v)
+  def reduce(v, _params, result) when is_binary(v), do: Result.set_ast(result, v)
+  def reduce(v, _params, result) when is_integer(v), do: Result.set_ast(result, v)
+  def reduce(v, _params, result) when is_float(v), do: Result.set_ast(result, v)
+  def reduce(v, _params, result) when is_list(v), do: Result.set_ast(result, v)
+  def reduce(v, _params, result) when is_map(v), do: Result.set_ast(result, v)
 
   def regex_match?(pattern, value) do
     value != "" and Regex.match?(~r/#{pattern}/, value)
