@@ -24,9 +24,9 @@ defmodule When do
   def inputs(expression) do
     {:ok, ast} = ast(expression)
 
-    result = When.Reducer.reduce(ast, %{})
+    result = When.Reducer.reduce(ast)
 
-    result.missing_input
+    result.missing_inputs
   end
 
   def reduce(expression, inputs) do

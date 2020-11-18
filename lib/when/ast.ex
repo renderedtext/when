@@ -36,8 +36,8 @@ defmodule When.Ast do
         true
 
       _ ->
-        # do this better
-        {:error, "Can't"}
+        # TODO
+        raise "not possible"
     end
   end
 

@@ -10,8 +10,11 @@ defmodule When.Interpreter.Test do
 
       result = Reducer.reduce(ast)
 
-      assert result.missing_input == [{:keyword, "branch"}]
       assert result.ast == {"=", {:keyword, "branch"}, "master"}
+
+      assert result.missing_inputs == [
+               %{type: :keyword, name: "branch"}
+             ]
     end
 
     test "equal values" do
@@ -41,7 +44,10 @@ defmodule When.Interpreter.Test do
 
       result = Reducer.reduce(ast)
 
-      assert result.missing_input == [{:keyword, "branch"}]
+      assert result.missing_inputs == [
+               %{type: :keyword, name: "branch"}
+             ]
+
       assert result.ast == {"!=", {:keyword, "branch"}, "master"}
     end
 
@@ -71,7 +77,11 @@ defmodule When.Interpreter.Test do
       {:ok, ast} = When.ast("branch =~ 'mast.*'")
 
       result = Reducer.reduce(ast)
-      assert result.missing_input == [{:keyword, "branch"}]
+
+      assert result.missing_inputs == [
+               %{type: :keyword, name: "branch"}
+             ]
+
       assert result.ast == {"=~", {:keyword, "branch"}, "mast.*"}
     end
 
@@ -113,7 +123,11 @@ defmodule When.Interpreter.Test do
       {:ok, ast} = When.ast("branch !~ 'mast.*'")
 
       result = Reducer.reduce(ast)
-      assert result.missing_input == [{:keyword, "branch"}]
+
+      assert result.missing_inputs == [
+               %{type: :keyword, name: "branch"}
+             ]
+
       assert result.ast == {"!~", {:keyword, "branch"}, "mast.*"}
     end
 
@@ -156,7 +170,11 @@ defmodule When.Interpreter.Test do
 
       result = Reducer.reduce(ast)
 
-      assert result.missing_input == [{:keyword, "branch"}, {:keyword, "result"}]
+      assert result.missing_inputs == [
+               %{type: :keyword, name: "branch"},
+               %{type: :keyword, name: "result"}
+             ]
+
       assert {"and", left, right} = result.ast
       assert left == {"=", {:keyword, "branch"}, "master"}
       assert right == {"=", {:keyword, "result"}, "passed"}
@@ -202,7 +220,11 @@ defmodule When.Interpreter.Test do
 
       result = Reducer.reduce(ast)
 
-      assert result.missing_input == [{:keyword, "branch"}, {:keyword, "result"}]
+      assert result.missing_inputs == [
+               %{type: :keyword, name: "branch"},
+               %{type: :keyword, name: "result"}
+             ]
+
       assert {"or", left, right} = result.ast
       assert left == {"=", {:keyword, "branch"}, "master"}
       assert right == {"=", {:keyword, "result"}, "passed"}
@@ -247,10 +269,10 @@ defmodule When.Interpreter.Test do
 
     result = Reducer.reduce(ast)
 
-    assert result.missing_input == [
-             {:keyword, "branch"},
-             {:keyword, "result"},
-             {:keyword, "result"}
+    assert result.missing_inputs == [
+             %{type: :keyword, name: "branch"},
+             %{type: :keyword, name: "result"},
+             %{type: :keyword, name: "result"}
            ]
 
     assert {"or", {"and", and_left, and_right}, or_right} = result.ast
@@ -265,7 +287,9 @@ defmodule When.Interpreter.Test do
 
       result = Reducer.reduce(ast)
 
-      assert result.missing_input == [{:fun, :change_in, ["lib"]}]
+      assert result.missing_inputs == [
+               %{type: :fun, name: :change_in, params: ["lib"]}
+             ]
     end
 
     test "reduction with inputs" do
