@@ -301,5 +301,15 @@ defmodule When.Interpreter.Test do
 
       assert Reducer.reduce(ast, inputs).ast == true
     end
+
+    test "reduction with map inputs" do
+      {:ok, ast} = When.ast("change_in('lib', {default_branch: 'dev'})")
+
+      inputs =
+        Inputs.new()
+        |> Inputs.add(:fun, "change_in", ["lib", %{"default_branch" => "dev"}], true)
+
+      assert Reducer.reduce(ast, inputs).ast == true
+    end
   end
 end

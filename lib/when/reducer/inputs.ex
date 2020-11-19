@@ -44,7 +44,11 @@ defmodule When.Reducer.Inputs do
   def get_function(inputs, name, params) do
     inputs["functions"]
     |> Enum.find(fn el ->
-      el["name"] == name && el["params"] == params
+      el["name"] == name && el["params"] == stringify_map(params)
     end)
+  end
+
+  defp stringify_map(map) do
+    map |> Poison.encode!() |> Poison.decode!()
   end
 end
