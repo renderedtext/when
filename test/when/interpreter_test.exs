@@ -25,15 +25,7 @@ defmodule When.Interpreter.Test do
     {"or", {"and", {"=", {:keyword, "branch"}, "master"}, {"!=", {:keyword, "result"}, "failed"}},
      {"and", {"and", {"=~", {:keyword, "tag"}, "v1.*"}, {"=", {:keyword, "result"}, "passed"}},
       {"!=", {:keyword, "result_reason"}, "skipped"}}},
-    {"and", {"=~", {:keyword, "pull_request"}, ".*"}, {"=", {:keyword, "result"}, "passed"}},
-    {"and", {:fun, :test_fun_0, []},
-     {"=", {:fun, :test_fun_1, ["master"]}, {:fun, :test_fun_2, ["master", 0]}}},
-    {"and",
-     {"or", {:fun, :test_fun_3, [[1, 2], [["a", "b"], []]]},
-      {"=", {:keyword, "branch"}, "master"}}, [1.0, "uiop"]},
-    {"or", {:fun, :test_fun_4, [%{}, %{a: "dev"}, %{b: %{c: [1, 2]}}, [1, %{d: 3}]]},
-     {"=", {:keyword, "tag"}, "v2.0"}},
-    {"and", {:fun, :test_fun_1, []}, {:fun, :test_fun_1, ["master"]}}
+    {"and", {"=~", {:keyword, "pull_request"}, ".*"}, {"=", {:keyword, "result"}, "passed"}}
   ]
 
   @test_params_examples [
@@ -89,7 +81,13 @@ defmodule When.Interpreter.Test do
       @test_ast_examples
       |> Enum.with_index()
       |> Enum.map(fn {ast, ast_ind} ->
-        result = Interpreter.evaluate(ast, params)
+        input =
+          When.Reducer.Inputs.from_map(%{
+            "keywords" => params,
+            "functions" => []
+          })
+
+        result = Interpreter.evaluate(ast, input)
         expected = @expected_results |> Enum.at(param_ind) |> Enum.at(ast_ind)
 
         assert {param_ind, ast_ind, result} == {param_ind, ast_ind, expected}
@@ -117,31 +115,31 @@ defmodule When.Interpreter.Test do
       {"or", "false", {"=", {:keyword, "branch"}, "master"}}
     ]
     |> Enum.map(fn ast ->
-      assert {:error, message} = Interpreter.evaluate(ast, %{})
+      assert {:error, message} = Interpreter.evaluate(ast, When.Reducer.Inputs.new())
       assert message == "Missing value of keyword parameter 'branch'."
     end)
   end
 
-  # test "various error when calling functions" do
-  #   examples = [
-  #     {:fun, :invalid_fun_name, []},
-  #     {:fun, :test_fun_1, ["two, instead of", "one parameter"]},
-  #     {:fun, :test_fun_2, ["function returns :error tuple", false]}
-  #   ]
+  test "various error when calling functions" do
+    examples = [
+      {:fun, :invalid_fun_name, []},
+      {:fun, :test_fun_1, ["two, instead of", "one parameter"]},
+      {:fun, :test_fun_2, ["function returns :error tuple", false]}
+    ]
 
-  #   errors = [
-  #     "Function with name 'invalid_fun_name' is not found.",
-  #     "Function 'test_fun_1' accepts 0, 1 or 3 parameter(s) and was provided with 2.",
-  #     "Function 'test_fun_2' returned error: Second parameter must be integer."
-  #   ]
+    errors = [
+      "Function with name 'invalid_fun_name' is not found.",
+      "Function 'test_fun_1' accepts 0, 1 or 3 parameter(s) and was provided with 2.",
+      "Function 'test_fun_2' returned error: Second parameter must be integer."
+    ]
 
-  #   examples
-  #   |> Enum.with_index()
-  #   |> Enum.map(fn {ast, index} ->
-  #     assert {:error, message} = Interpreter.evaluate(ast, %{})
-  #     assert message == errors |> Enum.at(index)
-  #   end)
-  # end
+    examples
+    |> Enum.with_index()
+    |> Enum.map(fn {ast, index} ->
+      assert {:error, message} = Interpreter.evaluate(ast, %{})
+      assert message == errors |> Enum.at(index)
+    end)
+  end
 
   def test_fun_0(_params), do: {:ok, true}
 

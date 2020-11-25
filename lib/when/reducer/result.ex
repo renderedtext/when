@@ -48,4 +48,9 @@ defmodule When.Reducer.Result do
   def join_missing_inputs(r1, r2) do
     r1.missing_inputs ++ r2.missing_inputs
   end
+
+  def has_errors?(result) do
+    # TODO
+    false
+  end
 end
