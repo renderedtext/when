@@ -58,10 +58,10 @@ defmodule When.Interpreter do
             {:error, {err_type, "Function '#{name}' returned error: #{inspect(e)}"}}
 
           {:error, e} ->
-            {:error, "Function '#{fun}' returned error: #{to_str(e)}"}
+            {:error, "Function '#{name}' returned error: #{inspect(e)}"}
 
           error ->
-            {:error, "Function '#{fun}' returned unsupported value: #{to_str(error)}"}
+            {:error, "Function '#{name}' returned unsupported value: #{inspect(error)}"}
         end
 
       m ->
@@ -70,7 +70,7 @@ defmodule When.Interpreter do
   end
 
   def missing_inputs_error(missing_inputs) do
-    %{name: name, type: :keyword} = hd(result.missing_inputs)
+    %{name: name, type: :keyword} = hd(missing_inputs)
 
     {:error, "Missing value of keyword parameter '#{name}'."}
   end
