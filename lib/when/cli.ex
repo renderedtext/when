@@ -23,7 +23,7 @@ defmodule When.CLI do
     result =
       File.read!(input_path)
       |> Poison.decode!()
-      |> Enum.map(fn e -> When.reduce(e.expression, e.inputs) end)
+      |> Enum.map(fn e -> When.reduce(e["expression"], e["inputs"]) end)
       |> Poison.encode!()
 
     File.write!(output_path, result)
