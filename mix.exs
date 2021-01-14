@@ -21,6 +21,6 @@ defmodule When.MixProject do
   end
 
   defp escript do
-    [main_module: When.CLI]
+    [main_module: When.CLI, emu_args: "-mode minimal +sbtu +A0 -noinput -boot no_dot_erlang"]
   end
 end

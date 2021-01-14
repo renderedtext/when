@@ -1,19 +1,25 @@
 defmodule When.CLI do
-  def main(args \\ []) do
+  def main(args) do
     case args do
-      ["list-inputs", expression] ->
-        list_inputs(expression)
+      ["hello"] ->
+        IO.puts("hello")
+
+      ["list-inputs", "--input", input, "--output", output] ->
+        list_inputs(input, output)
 
       ["reduce", expression, "--input", path] ->
         reduce(expression, path)
     end
   end
 
-  def list_inputs(expression) do
-    expression
-    |> When.inputs()
-    |> Poison.encode!()
-    |> IO.puts()
+  def list_inputs(input_path, output_path) do
+    result =
+      File.read!(input_path)
+      |> Poison.decode!()
+      |> Enum.map(fn line -> When.inputs(line) end)
+      |> Poison.encode!()
+
+    File.write!(output_path, result)
   end
 
   def reduce(expression, inputs_file_path) do
@@ -27,6 +33,7 @@ defmodule When.CLI do
 
   defp load_json_file(path) do
     {:ok, body} = File.read(path)
-    {:ok, json} = Poison.decode(body)
+
+    Poison.decode(body)
   end
 end
