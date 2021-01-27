@@ -22,18 +22,22 @@ defmodule When do
   end
 
   def inputs(expression) do
-    {:ok, ast} = ast(expression)
-
-    result = When.Reducer.reduce(ast)
-
-    result.missing_inputs
+    with {:ok, ast} <- ast(expression),
+         result <- When.Reducer.reduce(ast),
+         {:ok, result} <- When.Reducer.Result.to_tuple(result) do
+      {:ok, result}
+    else
+      {:error, msg} -> {:error, msg}
+    end
   end
 
   def reduce(expression, inputs) do
-    {:ok, ast} = ast(expression)
-
-    result = When.Reducer.reduce(ast, inputs)
-
-    When.Ast.to_expr(result.ast)
+    with {:ok, ast} <- ast(expression),
+         result <- When.Reducer.reduce(ast, inputs),
+         ast <- When.Ast.to_expr(result.ast) do
+      {:ok, ast}
+    else
+      {:error, msg} -> {:error, msg}
+    end
   end
 end
