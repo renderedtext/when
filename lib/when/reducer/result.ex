@@ -21,7 +21,8 @@ defmodule When.Reducer.Result do
   def new() do
     %{
       ast: nil,
-      missing_inputs: []
+      missing_inputs: [],
+      errors: []
     }
   end
 
@@ -50,7 +51,14 @@ defmodule When.Reducer.Result do
   end
 
   def has_errors?(result) do
-    # TODO
-    false
+    result.errors != []
+  end
+
+  def to_tuple(result) do
+    if has_errors?(result) do
+      {:error, result.errors}
+    else
+      {:ok, result.missing_inputs}
+    end
   end
 end
