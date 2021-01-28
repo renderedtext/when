@@ -81,13 +81,7 @@ defmodule When.Interpreter.Test do
       @test_ast_examples
       |> Enum.with_index()
       |> Enum.map(fn {ast, ast_ind} ->
-        input =
-          When.Reducer.Inputs.from_map(%{
-            "keywords" => params,
-            "functions" => []
-          })
-
-        result = Interpreter.evaluate(ast, input)
+        result = Interpreter.evaluate(ast, params)
         expected = @expected_results |> Enum.at(param_ind) |> Enum.at(ast_ind)
 
         assert {param_ind, ast_ind, result} == {param_ind, ast_ind, expected}
