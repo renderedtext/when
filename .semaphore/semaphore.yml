@@ -12,6 +12,9 @@ blocks:
         commands:
           - checkout
       jobs:
+      - name: Lint
+        commands:
+          - make lint-root
       - name: Unit tests
         commands:
           - make test

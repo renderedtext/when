@@ -31,3 +31,9 @@ test:
 
 escript.build:
 	$(MAKE) console USER=root CMD="mix escript.build"
+
+lint:
+	$(MAKE) console CMD="mix do credo"
+
+lint-root:
+	$(MAKE) console MIX_ENV=test USER=root CMD="mix do local.hex --force, local.rebar --force, deps.get, credo"

@@ -1,4 +1,8 @@
 defmodule When.Ast do
+  @moduledoc """
+  Helper functions for manipulation with abstract syntax tree.
+  """
+
   @binary_ops ["and", "or", "=", "!=", "=~", "!~"]
 
   defguard(is_binary_op?(op) when op in @binary_ops)
@@ -23,10 +27,10 @@ defmodule When.Ast do
       str when is_binary(str) and str != "false" ->
         true
 
-      list when is_list(list) and length(list) == 0 ->
+      list when is_list(list) and list == [] ->
         false
 
-      list when is_list(list) and length(list) > 0 ->
+      list when is_list(list) and list != [] ->
         true
 
       map when is_map(map) and map_size(map) == 0 ->
@@ -92,7 +96,7 @@ defmodule When.Ast do
     "#{bracketize(left)} #{op} #{bracketize(right)}"
   end
 
-  def bracketize(ast = {op, left, right}) when is_binary_op?(op), do: "(#{to_expr(ast)})"
+  def bracketize(ast = {op, _left, _right}) when is_binary_op?(op), do: "(#{to_expr(ast)})"
   def bracketize(ast), do: to_expr(ast)
 
   def fun_to_expr(name, params) do

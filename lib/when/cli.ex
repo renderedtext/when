@@ -1,4 +1,8 @@
 defmodule When.CLI do
+  @moduledoc """
+  Main entrypoint for CLI version of the application.
+  """
+
   def main(args) do
     case args do
       ["list-inputs", "--input", input, "--output", output] ->

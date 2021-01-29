@@ -1,4 +1,10 @@
 defmodule When.Interpreter do
+  @moduledoc """
+  Module takes expression in abstract syntax tree form, replaces keywords
+  with actual values from given input map, and evaluates expression using reducer
+  in order to return boolean value for when condition which given expression represents.
+  """
+
   alias When.Reducer.Inputs
 
   def evaluate(ast, params, opts \\ []) do
@@ -36,8 +42,7 @@ defmodule When.Interpreter do
     prepare_inputs(missing_inputs, params, Inputs.new(), opts)
   end
 
-  def prepare_inputs(missing_inputs, _params, inputs, opts)
-  when is_list(missing_inputs) and length(missing_inputs) == 0, do: {:ok, inputs}
+  def prepare_inputs([], _params, inputs, _opts), do: {:ok, inputs}
 
   def prepare_inputs([head | tail], params, inputs, opts) do
     case head do
@@ -81,7 +86,7 @@ defmodule When.Interpreter do
   end
 
   defp call_function(_mod, _fun, _f_params, [dry_run: true]), do: {:ok, false}
-  defp call_function(module, fun, f_params, opts) do
+  defp call_function(module, fun, f_params, _opts) do
     case apply(module, fun, f_params) do
       {:ok, value} -> {:ok, value}
 
