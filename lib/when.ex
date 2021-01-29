@@ -10,15 +10,14 @@ defmodule When do
 
   def evaluate(string_expression, params, opts \\ []) do
     with {:ok, ast} <- ast(string_expression),
-         result when is_boolean(result) <- Interpreter.evaluate(ast, params) do
+         result when is_boolean(result) <- Interpreter.evaluate(ast, params, opts) do
       {:ok, result}
     end
   end
 
   def ast(exression) do
-    {:ok, tokens} = Lexer.tokenize(exression)
-
-    Parser.parse(tokens)
+    with {:ok, tokens} <- Lexer.tokenize(exression),
+    do: Parser.parse(tokens)
   end
 
   def inputs(expression) do

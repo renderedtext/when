@@ -44,7 +44,7 @@ defmodule When.Reducer.Inputs do
   def get_function(inputs, name, params) do
     inputs["functions"]
     |> Enum.find(fn el ->
-      el["name"] == name && el["params"] == stringify_map(params)
+      el["name"] == name && stringify_map(el["params"]) == stringify_map(params)
     end)
   end
 

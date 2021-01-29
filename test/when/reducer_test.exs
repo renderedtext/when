@@ -1,4 +1,4 @@
-defmodule When.Interpreter.Test do
+defmodule When.Reducer.Test do
   use ExUnit.Case
 
   alias When.{Reducer}
