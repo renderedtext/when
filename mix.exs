@@ -17,7 +17,10 @@ defmodule When.MixProject do
   end
 
   defp deps do
-    [{:poison, "~> 3.1"}]
+    [
+      {:credo, "~> 0.9", only: [:dev, :test], runtime: false},
+      {:poison, "~> 3.1"}
+    ]
   end
 
   defp escript do
