@@ -17,4 +17,4 @@ blocks:
             - checkout
             - make setup
             - make escript.build
-            - bash .semaphoreci/release.sh
+            - bash .semaphore/release.sh
