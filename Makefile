@@ -18,8 +18,22 @@ CONTAINER_ENV_VARS= \
 
 CMD?=/bin/bash
 
+setup:
+	$(MAKE) console USER=root CMD="mix local.hex --force"
+	$(MAKE) console USER=root CMD="mix deps.get"
+	$(MAKE) console USER=root CMD="mix deps.compile"
+
 console:
 	docker run --network=host $(CONTAINER_ENV_VARS) $(INTERACTIVE_SESSION) $(CMD)
 
 test:
-	$(MAKE) console USER=root MIX_ENV=test CMD="mix do local.hex --force, local.rebar --force, deps.get, test"
+	$(MAKE) console USER=root MIX_ENV=test CMD="mix do local.hex --force, local.rebar --force, deps.get, test $(FILE)"
+
+escript.build:
+	$(MAKE) console USER=root CMD="mix escript.build"
+
+lint:
+	$(MAKE) console CMD="mix do credo"
+
+lint-root:
+	$(MAKE) console MIX_ENV=test USER=root CMD="mix do local.hex --force, local.rebar --force, deps.get, credo"

@@ -6,15 +6,37 @@ defmodule When do
   params map.
   """
 
-  alias  When.{Lexer, Parser, Interpreter}
+  alias When.{Lexer, Parser, Interpreter}
 
   def evaluate(string_expression, params, opts \\ []) do
-    with {:ok, tokens} <- Lexer.tokenize(string_expression),
-         {:ok, ast}    <- Parser.parse(tokens),
-         result when is_boolean(result)
-                       <- Interpreter.evaluate(ast, params, opts)
-    do
+    with {:ok, ast} <- ast(string_expression),
+         result when is_boolean(result) <- Interpreter.evaluate(ast, params, opts) do
       {:ok, result}
+    end
+  end
+
+  def ast(exression) do
+    with {:ok, tokens} <- Lexer.tokenize(exression),
+    do: Parser.parse(tokens)
+  end
+
+  def inputs(expression) do
+    with {:ok, ast} <- ast(expression),
+         result <- When.Reducer.reduce(ast),
+         {:ok, result} <- When.Reducer.Result.to_tuple(result) do
+      {:ok, result}
+    else
+      {:error, msg} -> {:error, msg}
+    end
+  end
+
+  def reduce(expression, inputs) do
+    with {:ok, ast} <- ast(expression),
+         result <- When.Reducer.reduce(ast, inputs),
+         ast <- When.Ast.to_expr(result.ast) do
+      {:ok, ast}
+    else
+      {:error, msg} -> {:error, msg}
     end
   end
 end

@@ -1,104 +1,71 @@
 defmodule When.Interpreter do
   @moduledoc """
-  Module takes expression in abstract syntax tree from, replaces all keywords
-  with actual values from given params map, and evaluates expression in order to
-  return boolean value for when condition which given expression represents.
+  Module takes expression in abstract syntax tree form, replaces keywords
+  with actual values from given input map, and evaluates expression using reducer
+  in order to return boolean value for when condition which given expression represents.
   """
 
-  @keywords ~w(branch tag pull_request result result_reason)
+  alias When.Reducer.Inputs
 
-  def evaluate(string, params, opts \\ []) do
-    case evaluate_(string, params, opts) do
-      bool when is_boolean(bool)
-        -> bool
-      int when is_integer(int) and int >= 0
-        -> true
-      int when is_integer(int) and int < 0
-        -> false
-      float when is_float(float) and float >= 0.0
-        -> true
-      float when is_float(float) and float < 0.0
-        -> false
-      str when is_binary(str) and str != "false"
-        -> true
-      list when is_list(list) and length(list) == 0
-        -> false
-      list when is_list(list) and length(list) > 0
-        -> true
-      map when is_map(map) and map_size(map) == 0
-        -> false
-      map when is_map(map) and map_size(map) > 0
-        -> true
-      error -> error
+  def evaluate(ast, params, opts \\ []) do
+    opts = Keyword.merge([dry_run: false], opts)
+
+    #
+    # In the first pass, we are reducing the expression without inputs.
+    # This will give us a list of necessary inputs, and also verify the
+    # validity of the expression.
+    #
+    result = When.Reducer.reduce(ast)
+
+    case prepare_inputs(result.missing_inputs, params, opts) do
+      {:ok, inputs} -> evaluate_or_fail(ast, inputs)
+      {:error, error} -> {:error, error}
     end
   end
 
-  defp evaluate_(error = {:error, _}, _params, _opts), do: error
+  def evaluate_or_fail(ast, inputs) do
+    result = When.Reducer.reduce(ast, inputs)
 
-  defp evaluate_({:keyword, keyword}, params, _opts) when keyword in @keywords do
-    error_404 = {:error, "Missing value of keyword parameter '#{keyword}'."}
-    Map.get(params, keyword, error_404)
+    cond do
+      When.Reducer.Result.has_errors?(result) ->
+        result.errors
+
+      result.missing_inputs != [] ->
+        missing_inputs_error(result.missing_inputs)
+
+      true ->
+        When.Reducer.Result.to_bool(result)
+    end
   end
 
-  defp evaluate_("false", _params, _opts), do: false
-  defp evaluate_("true", _params, _opts), do: true
-
-  defp evaluate_(boolean, _params, _opts) when is_boolean(boolean), do: boolean
-  defp evaluate_(string, _params, _opts) when is_binary(string), do: string
-  defp evaluate_(integer, _params, _opts) when is_integer(integer), do: integer
-  defp evaluate_(float, _params, _opts) when is_float(float), do: float
-  defp evaluate_(list, _params, _opts) when is_list(list), do: list
-  defp evaluate_(map, _params, _opts) when is_map(map), do: map
-
-  defp evaluate_({:fun, name, f_params}, params, opts) do
-    f_params
-    |> Enum.reduce_while([], fn f_param, acc ->
-      case evaluate_(f_param, params, opts) do
-        {:error, e} -> {:halt, {:error, e}}
-        value -> {:cont, acc ++ [value]}
-      end
-    end)
-    |> evaluate_fun(name, params, opts)
+  def prepare_inputs(missing_inputs, params, opts) do
+    prepare_inputs(missing_inputs, params, Inputs.new(), opts)
   end
 
-  defp evaluate_({"and", first, second}, params, opts) do
-    l_value = evaluate_(first, params, opts)
-    r_value = evaluate_(second, params, opts)
-    apply_opp(l_value, r_value, __MODULE__, :and_func)
-  end
+  def prepare_inputs([], _params, inputs, _opts), do: {:ok, inputs}
 
-  defp evaluate_({"or", first, second}, params, opts) do
-    l_value = evaluate_(first, params, opts)
-    r_value = evaluate_(second, params, opts)
-    apply_opp(l_value, r_value, __MODULE__, :or_func)
-  end
+  def prepare_inputs([head | tail], params, inputs, opts) do
+    case head do
+      %{type: :keyword, name: name} ->
+        if Map.has_key?(params, name) do
+          inputs = Inputs.add(inputs, :keyword, name, Map.get(params, name))
+          prepare_inputs(tail, params, inputs, opts)
+        else
+          {:error, "Missing value of keyword parameter '#{name}'."}
+        end
 
-  defp evaluate_({"=", first, second}, params, opts) do
-    l_value = evaluate_(first, params, opts)
-    r_value = evaluate_(second, params, opts)
-    apply_opp(l_value, r_value, Kernel, :"==")
-  end
+      %{type: :fun, name: name, params: f_params} ->
+         case evaluate_fun(f_params, name, params, opts) do
+           {:ok, value} ->
+             inputs = Inputs.add(inputs, :fun, Atom.to_string(name), f_params, value)
+             prepare_inputs(tail, params, inputs, opts)
 
-  defp evaluate_({"!=", first, second}, params, opts) do
-    l_value = evaluate_(first, params, opts)
-    r_value = evaluate_(second, params, opts)
-    apply_opp(l_value, r_value, Kernel, :"!=")
-  end
+           error -> error
+         end
 
-  defp evaluate_({"=~", first, second}, params, opts) do
-    l_value = evaluate_(first, params, opts)
-    r_value = evaluate_(second, params, opts)
-    apply_opp(~r/#{r_value}/, l_value, Regex, :match?)
-  end
-
-  defp evaluate_({"!~", first, second}, params, opts) do
-    l_value = evaluate_(first, params, opts)
-    r_value = evaluate_(second, params, opts)
-    apply_opp(~r/#{r_value}/, l_value, __MODULE__, :not_match?)
-  end
-
-  defp evaluate_(error_value, _params, _opts) do
-    {:error, "Unsupported value found while interpreting expression: '#{to_str(error_value)}'"}
+      m ->
+        {:error, "Expression requires an unknown input format '#{inspect(m)}'."}
+    end
   end
 
   defp evaluate_fun(f_params, name, params, opts) do
@@ -118,10 +85,10 @@ defmodule When.Interpreter do
     end
   end
 
-  defp call_function(_mod, _fun, _f_params, [dry_run: true]), do: false
+  defp call_function(_mod, _fun, _f_params, [dry_run: true]), do: {:ok, false}
   defp call_function(module, fun, f_params, _opts) do
     case apply(module, fun, f_params) do
-      {:ok, value} -> value
+      {:ok, value} -> {:ok, value}
 
       {:error, {err_type, e}} when is_atom(err_type) ->
           {:error, {err_type, "Function '#{fun}' returned error: #{to_str(e)}"}}
@@ -132,24 +99,13 @@ defmodule When.Interpreter do
     end
   end
 
-  # Utility
+  def missing_inputs_error(missing_inputs) do
+    %{name: name, type: :keyword} = hd(missing_inputs)
 
-  defp apply_opp(error = {:error, _msg}, _r_value, _module, _func), do: error
-  defp apply_opp(_l_value, error = {:error, _msg}, _module, _func), do: error
-  defp apply_opp(_pattern, "", _module, :match?), do: false
-  defp apply_opp(_pattern, "", _module, :not_match?), do: true
-  defp apply_opp(l_value, r_value, module, func) do
-    apply(module, func, [l_value, r_value])
+    {:error, "Missing value of keyword parameter '#{name}'."}
   end
 
-  # Helper matching function
-
-  def not_match?(pattern, string), do: not Regex.match?(pattern, string)
-
-  ## This is required because both Kernel.and and Kernel.or are macros, so they can
-  ## not be called directly from apply/3
-  def and_func(first, second), do: first and second
-  def or_func(first, second), do: first or second
+  # Utility
 
   defp to_str(val) when is_binary(val), do: val
   defp to_str([elem | list]) when is_integer(elem) and is_list(list) and length(list) >= 2 do
