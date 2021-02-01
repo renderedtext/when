@@ -15,5 +15,6 @@ blocks:
         - name: Release
           commands:
             - checkout
+            - make setup
             - make escript.build
             - bash .semaphoreci/release.sh
