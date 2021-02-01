@@ -14,5 +14,6 @@ blocks:
       jobs:
         - name: Release
           commands:
+            - checkout
             - make escript.build
             - bash .semaphoreci/release.sh
