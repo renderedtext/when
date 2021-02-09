@@ -143,46 +143,6 @@ promotions:
       when: "branch = 'staging' OR branch = 'master'"
 ```
 
-### Allow manual promotion only on master branch
-
-```yaml
-promotions:
-  - name: Deploy to production
-    pipeline_file: prod.yml
-    allow:
-      when: "branch = 'master'"
-```
-
-### Allow manual promotion only if result is passed
-
-```yaml
-promotions:
-  - name: Deploy to production
-    pipeline_file: prod.yml
-    allow:
-      when: "result = 'passed'"
-```
-
-### Allow manual promotion only on tags
-
-```yaml
-promotions:
-  - name: Deploy to production
-    pipeline_file: prod.yml
-    allow:
-      when: 'tag =~ '.*''
-```
-
-### Allow manual promotion only on tags and result is passed
-
-```yaml
-promotions:
-  - name: Deploy to production
-    pipeline_file: prod.yml
-    allow:
-      when: "tag =~ '.*' and result = 'passed'"
-```
-
 ### Promote automatically on any tag
 
 ```yaml
