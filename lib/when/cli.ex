@@ -3,6 +3,9 @@ defmodule When.CLI do
   Main entrypoint for CLI version of the application.
   """
 
+  use Bakeware.Script
+
+  @impl Bakeware.Script
   def main(args) do
     case args do
       ["list-inputs", "--input", input, "--output", output] ->
