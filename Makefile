@@ -26,10 +26,9 @@ console:
 	docker run --network=host $(CONTAINER_ENV_VARS) $(INTERACTIVE_SESSION) $(CMD)
 
 test:
-	$(MAKE) console USER=root MIX_ENV=test CMD="mix do local.hex --force, local.rebar --force, deps.get, test $(FILE)"
+	$(MAKE) console USER=root MIX_ENV=test CMD="mix do local.hex --force, local.rebar --force, deps.get, test $(FILE) --no-start"
 
 bin.build:
-	rm -rf _build/
 	$(MAKE) console USER=root MIX_ENV=prod CMD="apt-get install zstd && mix release"
 
 lint:
