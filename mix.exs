@@ -5,7 +5,7 @@ defmodule When.MixProject do
     [
       app: :when,
       version: "0.1.0",
-      elixir: "~> 1.6",
+      elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       releases: [{:when, release()}],
@@ -22,8 +22,8 @@ defmodule When.MixProject do
 
   defp deps do
     [
-      {:credo, "~> 0.9", only: [:dev, :test], runtime: false},
-      {:poison, "~> 3.1"},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:poison, "~> 5.0"},
       {:bakeware, "~> 0.2", runtime: false}
     ]
   end

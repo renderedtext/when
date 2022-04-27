@@ -16,5 +16,5 @@ blocks:
           commands:
             - checkout
             - make setup
-            - make escript.build
+            - make bin.build
             - bash .semaphore/release.sh
