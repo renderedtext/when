@@ -18,11 +18,3 @@ blocks:
       - name: Unit tests
         commands:
           - make test
-
-promotions:
-  - name: "Release on Github"
-    pipeline_file: "release.yml"
-    auto_promote_on:
-      - result: passed
-        branch:
-          - "^refs/tags/v*"
