@@ -10,7 +10,7 @@ INTERACTIVE_SESSION=\
           -e HOME=$(HOME_DIR) \
           -e MIX_ENV=test \
           --workdir=$(WORKDIR) \
-          -it renderedtext/elixir-dev:1.6.5-v2 \
+          -it renderedtext/elixir-dev:1.11.4 \
 
 CONTAINER_ENV_VARS= \
 	-e MIX_ENV=$(MIX_ENV)\
