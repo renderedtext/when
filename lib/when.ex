@@ -17,7 +17,7 @@ defmodule When do
 
   def ast(exression) do
     with {:ok, tokens} <- Lexer.tokenize(exression),
-    do: Parser.parse(tokens)
+         do: Parser.parse(tokens)
   end
 
   def inputs(expression) do

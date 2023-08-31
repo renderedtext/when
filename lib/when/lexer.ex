@@ -9,25 +9,23 @@ defmodule When.Lexer do
     string_expression
     |> to_charlist()
     |> :when_lexer.string()
-    |> case  do
-        {:ok, tokens, _} -> {:ok, tokens}
-
-        error -> pretty_error(error)
-      end
+    |> case do
+      {:ok, tokens, _} -> {:ok, tokens}
+      error -> pretty_error(error)
+    end
   end
 
-  defp pretty_error(
-    {:error, {line_no, :when_lexer, {:illegal, characters}}, _no}
-  ) do
-    {:error, "Lexical error on line #{line_no}. - "
-              <> "Illegal characters: #{inspect characters}."}
+  defp pretty_error({:error, {line_no, :when_lexer, {:illegal, characters}}, _no}) do
+    {:error,
+     "Lexical error on line #{line_no}. - " <>
+       "Illegal characters: #{inspect(characters)}."}
   end
 
   defp pretty_error({:error, error}) do
-    {:error, "Lexical error - Unrecongnized error: #{inspect error}"}
+    {:error, "Lexical error - Unrecongnized error: #{inspect(error)}"}
   end
 
   defp pretty_error(error) do
-    {:error, "Lexical error - Unrecongnized error: #{inspect error}"}
+    {:error, "Lexical error - Unrecongnized error: #{inspect(error)}"}
   end
 end

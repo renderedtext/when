@@ -100,7 +100,7 @@ defmodule When.Ast do
   def bracketize(ast), do: to_expr(ast)
 
   def fun_to_expr(name, params) do
-    params_expression = Enum.map(params, fn p -> to_expr(p) end) |> Enum.join(", ")
+    params_expression = Enum.map_join(params, ", ", &to_expr/1)
 
     "#{name}(#{params_expression})"
   end

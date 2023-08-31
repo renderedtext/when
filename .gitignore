@@ -26,4 +26,6 @@ home_dir/
 log
 
 # escript build
-./when
+when
+
+security-toolbox/
