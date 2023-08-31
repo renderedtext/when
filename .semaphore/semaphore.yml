@@ -38,37 +38,37 @@ blocks:
             - "[[ -f out/results.xml ]] && test-results publish --name \"Unit Test\" out/results.xml"
 
   - name: 🛡️ Deployment Preconditions
-      task:
-        secrets:
-          - name: security-toolbox-shared-read-access
-          - name: semreg-semaphoredev-credentials
-        env_vars:
-          - name: MIX_ENV
-            value: "prod"
-          - name: DOCKER_BUILDKIT
-            value: "1"
+    task:
+      secrets:
+        - name: security-toolbox-shared-read-access
+        - name: semreg-semaphoredev-credentials
+      env_vars:
+        - name: MIX_ENV
+          value: "prod"
+        - name: DOCKER_BUILDKIT
+          value: "1"
 
-        prologue:
+      prologue:
+        commands:
+          - checkout
+          - mv ~/.ssh/security-toolbox ~/.ssh/id_rsa
+          - sudo chmod 600 ~/.ssh/id_rsa
+          - sem-version ruby 2.7
+          - echo $SEMAPHORE_REGISTRY_PASSWORD | docker login --username "$SEMAPHORE_REGISTRY_USERNAME" --password-stdin $SEMAPHORE_REGISTRY_HOST
+          - export REGISTRY_HOST=$SEMAPHORE_REGISTRY_HOST
+          - make pull
+
+      jobs:
+        - name: 🛡️ Check Code
           commands:
-            - checkout
-            - mv ~/.ssh/security-toolbox ~/.ssh/id_rsa
-            - sudo chmod 600 ~/.ssh/id_rsa
-            - sem-version ruby 2.7
-            - echo $SEMAPHORE_REGISTRY_PASSWORD | docker login --username "$SEMAPHORE_REGISTRY_USERNAME" --password-stdin $SEMAPHORE_REGISTRY_HOST
-            - export REGISTRY_HOST=$SEMAPHORE_REGISTRY_HOST
-            - make pull
-
-        jobs:
-          - name: 🛡️ Check Code
-            commands:
-              - make check.static
-          - name: 🛡️ Check Dependencies
-            commands:
-              - make check.deps
-        epilogue:
-          always:
-            commands:
-              - "[[ -f results.xml ]] && test-results publish --name \"$SEMAPHORE_JOB_NAME\" results.xml"
+            - make check.static
+        - name: 🛡️ Check Dependencies
+          commands:
+            - make check.deps
+      epilogue:
+        always:
+          commands:
+            - "[[ -f results.xml ]] && test-results publish --name \"$SEMAPHORE_JOB_NAME\" results.xml"
 
 after_pipeline:
   task:
