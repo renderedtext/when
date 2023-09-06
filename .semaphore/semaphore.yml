@@ -63,10 +63,6 @@ blocks:
         - name: 🛡️ Check Dependencies
           commands:
             - make check.deps
-      epilogue:
-        always:
-          commands:
-            - "[[ -f results.xml ]] && test-results publish --name \"$SEMAPHORE_JOB_NAME\" results.xml"
 
 after_pipeline:
   task:

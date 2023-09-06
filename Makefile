@@ -42,7 +42,7 @@ credo: build
 
 test: export MIX_ENV=test
 test: build
-	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix test $(FILE) $(FLAGS)
+	docker run --rm $(VOLUME_BIND) -v $(PWD)/out:/app/out $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix test $(FILE) $(FLAGS)
 
 escript.build: build
 	docker run --rm --volume $(PWD):/app $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix escript.build
