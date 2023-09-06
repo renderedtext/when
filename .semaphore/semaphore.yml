@@ -10,6 +10,7 @@ auto_cancel:
 
 blocks:
   - name: 🧪 QA
+    dependencies: []
     task:
       env_vars:
         - name: MIX_ENV
@@ -38,13 +39,14 @@ blocks:
             - "[[ -f out/results.xml ]] && test-results publish --name \"Unit Test\" out/results.xml"
 
   - name: 🛡️ Deployment Preconditions
+    dependencies:
+      - 🧪 QA
     task:
       secrets:
         - name: security-toolbox-shared-read-access
-        - name: semreg-semaphoredev-credentials
       env_vars:
         - name: MIX_ENV
-          value: "prod"
+          value: prod
         - name: DOCKER_BUILDKIT
           value: "1"
 
@@ -54,10 +56,6 @@ blocks:
           - mv ~/.ssh/security-toolbox ~/.ssh/id_rsa
           - sudo chmod 600 ~/.ssh/id_rsa
           - sem-version ruby 2.7
-          - echo $SEMAPHORE_REGISTRY_PASSWORD | docker login --username "$SEMAPHORE_REGISTRY_USERNAME" --password-stdin $SEMAPHORE_REGISTRY_HOST
-          - export REGISTRY_HOST=$SEMAPHORE_REGISTRY_HOST
-          - make pull
-
       jobs:
         - name: 🛡️ Check Code
           commands:

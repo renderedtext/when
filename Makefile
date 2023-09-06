@@ -12,12 +12,9 @@ IMAGE?=$(REGISTRY_HOST)/$(APP_NAME)/$(BRANCH)
 MASTER_IMAGE?=$(REGISTRY_HOST)/$(APP_NAME)/master
 IMAGE_TAG?=$(MIX_ENV)
 
-IN_DOCKER?="true"
-
 DOCKER_BUILD_TARGET?=dev
 
 CONTAINER_ENV_VARS= \
-  -e IN_DOCKER=$(IN_DOCKER) \
   -e CI=$(CI) \
   -e MIX_ENV=$(MIX_ENV) \
 
@@ -35,25 +32,26 @@ ifneq ($(CI),)
 endif
 
 build:
-	docker build --target $(DOCKER_BUILD_TARGET) --ssh default --build-arg BUILDKIT_INLINE_CACHE=$(BUILDKIT_INLINE_CACHE) --build-arg MIX_ENV=$(MIX_ENV) --cache-from=$(IMAGE):$(IMAGE_TAG) --cache-from=$(MASTER_IMAGE):$(IMAGE_TAG) -t $(IMAGE):$(IMAGE_TAG) .
+	docker build --target $(DOCKER_BUILD_TARGET) --ssh default --build-arg BUILDKIT_INLINE_CACHE=$(BUILDKIT_INLINE_CACHE) --build-arg MIX_ENV=$(MIX_ENV) --cache-from=$(IMAGE):$(IMAGE_TAG) -t $(IMAGE):$(IMAGE_TAG) .
 
-format:
+format: build
 	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS) $(IMAGE):$(IMAGE_TAG) mix do format $(DRY_RUN), app.config --warnings-as-errors
 
-credo:
+credo: build
 	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix credo --all
 
 test: export MIX_ENV=test
-test:
-	$(MAKE) build
+test: build
 	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix test $(FILE) $(FLAGS)
 
+escript.build: build
+	docker run --rm --volume $(PWD):/app $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix escript.build
 
-escript.build:
-	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix escript.build
-
-cmd:
+cmd: build
 	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS) $(IMAGE):$(IMAGE_TAG) $(CMD)
+
+dev.setup:
+	$(MAKE) cmd CMD="mix do deps.get, deps.compile"
 
 # Security checks. On CI environment - we're using sem-version to provide a ruby version.
 check.prepare:
@@ -74,7 +72,7 @@ else
 	$(SECURITY_TOOLBOX_TMP_DIR)/code --language elixir -d
 endif
 
-check.deps: # check.prepare
+check.deps: check.prepare
 ifeq ($(CI),)
 # We're running on local machine
 	docker run -it -v $$(pwd):/app \
