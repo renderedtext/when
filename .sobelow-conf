@@ -3,7 +3,7 @@
   private: false,
   skip: false,
   router: "",
-  exit: "false",
+  exit: :medium,
   format: "txt",
   ignore: ["Config.HTTPS"],
 ]
