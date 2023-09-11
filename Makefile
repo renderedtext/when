@@ -1,42 +1,89 @@
 .PHONY: console test
 
-USER=dev
-MIX_ENV=dev
-HOME_DIR=/home/dev
-WORKDIR=$(HOME_DIR)/when
-INTERACTIVE_SESSION=\
-          -v $$PWD/home_dir:$(HOME_DIR) \
-          -v $$PWD/:$(WORKDIR) \
-          -e HOME=$(HOME_DIR) \
-          -e MIX_ENV=test \
-          --workdir=$(WORKDIR) \
-          -it renderedtext/elixir-dev:1.6.5-v2 \
+APP_NAME=when
+
+export MIX_ENV?=dev
+
+BRANCH=$(shell git rev-parse --abbrev-ref HEAD | sed 's/[^a-z]//g')
+SECURITY_TOOLBOX_BRANCH?=master
+SECURITY_TOOLBOX_TMP_DIR?=/tmp/security-toolbox
+REGISTRY_HOST?=local
+IMAGE?=$(REGISTRY_HOST)/$(APP_NAME)/$(BRANCH)
+MASTER_IMAGE?=$(REGISTRY_HOST)/$(APP_NAME)/master
+IMAGE_TAG?=$(MIX_ENV)
+
+DOCKER_BUILD_TARGET?=dev
 
 CONTAINER_ENV_VARS= \
-	-e MIX_ENV=$(MIX_ENV)\
-  --user=$(USER)
+  -e CI=$(CI) \
+  -e MIX_ENV=$(MIX_ENV) \
 
-CMD?=/bin/bash
+export DOCKER_BUILDKIT=1
+BUILDKIT_INLINE_CACHE=1
 
-setup:
-	$(MAKE) console USER=root CMD="mix local.hex --force"
-	$(MAKE) console USER=root CMD="mix deps.get"
-	$(MAKE) console USER=root CMD="mix deps.compile"
+# Localy we want to bind volumes we're working on. On CI environment this is not necessary and would only slow us down. The data is already on the host.
+ifeq ($(CI),)
+	VOLUME_BIND?=--volume $(PWD):/app
+	export BUILDKIT_INLINE_CACHE=0
+endif
 
-console:
-	docker run --network=host $(CONTAINER_ENV_VARS) $(INTERACTIVE_SESSION) $(CMD)
+ifneq ($(CI),)
+	DRY_RUN?=--dry-run --check-formatted
+endif
 
-test:
-	$(MAKE) console USER=root MIX_ENV=test CMD="mix do local.hex --force, local.rebar --force, deps.get, test $(FILE)"
+build:
+	docker build --target $(DOCKER_BUILD_TARGET) --ssh default --build-arg BUILDKIT_INLINE_CACHE=$(BUILDKIT_INLINE_CACHE) --build-arg MIX_ENV=$(MIX_ENV) --cache-from=$(IMAGE):$(IMAGE_TAG) -t $(IMAGE):$(IMAGE_TAG) .
 
-escript.build:
-	$(MAKE) console USER=root CMD="mix escript.build"
+format: build
+	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS) $(IMAGE):$(IMAGE_TAG) mix do format $(DRY_RUN), app.config --warnings-as-errors
 
-lint:
-	$(MAKE) console CMD="mix do credo"
+credo: build
+	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix credo --all
 
-lint-root:
-	$(MAKE) console MIX_ENV=test USER=root CMD="mix do local.hex --force, local.rebar --force, deps.get, credo"
+test: export MIX_ENV=test
+test: build
+	docker run --rm $(VOLUME_BIND) -v $(PWD)/out:/app/out $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix test $(FILE) $(FLAGS)
+
+escript.build: build
+	docker run --rm --volume $(PWD):/app $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix escript.build
+
+cmd: build
+	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS) $(IMAGE):$(IMAGE_TAG) $(CMD)
+
+dev.setup:
+	$(MAKE) cmd CMD="mix do deps.get, deps.compile"
+
+# Security checks. On CI environment - we're using sem-version to provide a ruby version.
+check.prepare:
+	rm -rf $(SECURITY_TOOLBOX_TMP_DIR)
+	git clone git@github.com:renderedtext/security-toolbox.git $(SECURITY_TOOLBOX_TMP_DIR) && (cd $(SECURITY_TOOLBOX_TMP_DIR) && git checkout $(SECURITY_TOOLBOX_BRANCH) && cd -)
+
+# A few things we're ignoring here:
+# - TLS doesn't happen on the pod level, so we ignore the HTTPS warning
+check.static: check.prepare
+ifeq ($(CI),)
+# We're running on local machine
+	docker run -it -v $$(pwd):/app \
+		-v $(SECURITY_TOOLBOX_TMP_DIR):$(SECURITY_TOOLBOX_TMP_DIR) \
+		registry.semaphoreci.com/ruby:2.7 \
+		bash -c 'cd /app && $(SECURITY_TOOLBOX_TMP_DIR)/code --language elixir -d'
+else
+# We're running on Semaphore
+	$(SECURITY_TOOLBOX_TMP_DIR)/code --language elixir -d
+endif
+
+check.deps: check.prepare
+ifeq ($(CI),)
+# We're running on local machine
+	docker run -it -v $$(pwd):/app \
+		-v $(SECURITY_TOOLBOX_TMP_DIR):$(SECURITY_TOOLBOX_TMP_DIR) \
+		registry.semaphoreci.com/ruby:2.7 \
+		bash -c 'cd /app && $(SECURITY_TOOLBOX_TMP_DIR)/dependencies -d --language elixir'
+else
+# We're running on Semaphore
+	$(SECURITY_TOOLBOX_TMP_DIR)/dependencies -d --language elixir
+endif
+
 
 #
 # Release process

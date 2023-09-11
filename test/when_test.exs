@@ -25,29 +25,54 @@ defmodule When.Test do
     "pull_request =~ '.*' and result = 'passed'",
     "test_fun_0() and (test_fun_1('master') = test_fun_2('master', 0))",
     "(test_fun_3([1, 2], [['a', 'b'], []]) or branch = 'master') and [1.0, 'uiop']",
-    "test_fun_4({}, {a: 'dev'}, {b: {c: [1, 2]}}, [1, {a: 2}]) or tag = 'v2.0'",
+    "test_fun_4({}, {a: 'dev'}, {b: {c: [1, 2]}}, [1, {a: 2}]) or tag = 'v2.0'"
   ]
 
   @valid_params_examples [
-      %{"branch" => "master", "tag" => "v1.5", "result" => "passed", "pull_request" => "123",
-       "result_reason" => "stopped"},
-      %{"branch" => "dev", "tag" => "v1.5", "result" => "passed", "pull_request" => "123",
-        "result_reason" => "stopped"},
-      %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "pull_request" => "123",
-        "result_reason" => "stopped"},
-      %{"branch" => "master", "tag" => "v1.5", "result" => "failed", "pull_request" => "123",
-        "result_reason" => "stopped"},
-      %{"branch" => "master", "tag" => "v2.0", "result" => "passed", "pull_request" => "",
-        "result_reason" => "skipped"},
-    ]
+    %{
+      "branch" => "master",
+      "tag" => "v1.5",
+      "result" => "passed",
+      "pull_request" => "123",
+      "result_reason" => "stopped"
+    },
+    %{
+      "branch" => "dev",
+      "tag" => "v1.5",
+      "result" => "passed",
+      "pull_request" => "123",
+      "result_reason" => "stopped"
+    },
+    %{
+      "branch" => "master",
+      "tag" => "v2.0",
+      "result" => "passed",
+      "pull_request" => "123",
+      "result_reason" => "stopped"
+    },
+    %{
+      "branch" => "master",
+      "tag" => "v1.5",
+      "result" => "failed",
+      "pull_request" => "123",
+      "result_reason" => "stopped"
+    },
+    %{
+      "branch" => "master",
+      "tag" => "v2.0",
+      "result" => "passed",
+      "pull_request" => "",
+      "result_reason" => "skipped"
+    }
+  ]
 
-    @expected_results [
-      [true, false, false, true, true, true, true, true, false, true, false],
-      [true, false, false, false, false, false, true, true, true, false, true],
-      [true, false, false, false, false, false, true, true, false, true, true],
-      [true, false, false, true, true, true, false, false, false, true, false],
-      [true, false, false, false, false, true, true, false, false, true, true],
-    ]
+  @expected_results [
+    [true, false, false, true, true, true, true, true, false, true, false],
+    [true, false, false, false, false, false, true, true, true, false, true],
+    [true, false, false, false, false, false, true, true, false, true, true],
+    [true, false, false, true, true, true, false, false, false, true, false],
+    [true, false, false, false, false, true, true, false, false, true, true]
+  ]
 
   test "test module top level behavior for various string and pramas combination" do
     @valid_params_examples
@@ -68,13 +93,13 @@ defmodule When.Test do
     params = %{"branch" => "master", "tag" => "", "pull_request" => "123"}
 
     assert {:ok, false} = When.evaluate("tag =~ '.*'", params)
-    assert {:ok, true}  = When.evaluate("tag !~ '.*'", params)
+    assert {:ok, true} = When.evaluate("tag !~ '.*'", params)
 
-    assert {:ok, true}  = When.evaluate("branch =~ '.*'", params)
+    assert {:ok, true} = When.evaluate("branch =~ '.*'", params)
     assert {:ok, false} = When.evaluate("branch !~ '.*'", params)
 
     assert {:ok, true} = When.evaluate("pull_request =~ '.*'", params)
-    assert {:ok, false}  = When.evaluate("pull_request !~ '.*'", params)
+    assert {:ok, false} = When.evaluate("pull_request !~ '.*'", params)
   end
 
   @invald_strings_parser [
@@ -93,7 +118,7 @@ defmodule When.Test do
     "{a: 123",
     "{a 123}",
     "{branch = 'master'}",
-    "{true or false}",
+    "{true or false}"
   ]
 
   @error_messages_parser [
@@ -112,7 +137,7 @@ defmodule When.Test do
     "Invalid or incomplete expression at the end of the line.",
     "Invalid expression on the left of 'a'.",
     "Invalid expression on the left of 'branch' operator.",
-    "Invalid expression on the left of 'true'.",
+    "Invalid expression on the left of 'true'."
   ]
 
   test "returns syntax error when given string with invalid syntax" do
@@ -123,8 +148,9 @@ defmodule When.Test do
     |> Enum.map(fn {string, index} ->
       assert {:error, message} = When.evaluate(string, params)
       specific_error = @error_messages_parser |> Enum.at(index)
+
       assert {message, index} ==
-        {"Syntax error on line 1. - " <> specific_error, index}
+               {"Syntax error on line 1. - " <> specific_error, index}
     end)
   end
 
@@ -145,7 +171,7 @@ defmodule When.Test do
     "Illegal characters: '&'.",
     "Illegal characters: '.'.",
     "Illegal characters: '_'.",
-    "Illegal characters: '&'.",
+    "Illegal characters: '&'."
   ]
 
   test "lexer returns error when invalid string is given" do
@@ -156,8 +182,9 @@ defmodule When.Test do
     |> Enum.map(fn {string, index} ->
       assert {:error, message} = When.evaluate(string, params)
       specific_error = @error_messages_lexer |> Enum.at(index)
+
       assert {message, index} ==
-        {"Lexical error on line 1. - " <> specific_error, index}
+               {"Lexical error on line 1. - " <> specific_error, index}
     end)
   end
 

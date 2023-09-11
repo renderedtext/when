@@ -1,23 +1,75 @@
 version: v1.0
-name: Test pipeline
+name: Build & Test
 agent:
   machine:
-    type: e1-standard-2
-    os_image: ubuntu1804
+    type: e2-standard-2
+    os_image: ubuntu2004
+auto_cancel:
+  running:
+    when: 'true'
 
 blocks:
-  - name: "Build"
+  - name: 🧪 QA
+    dependencies: []
     task:
+      env_vars:
+        - name: MIX_ENV
+          value: test
+        - name: DOCKER_BUILDKIT
+          value: "1"
       prologue:
         commands:
           - checkout
       jobs:
-      - name: Lint
+        - name: 🧪 Code Format
+          commands:
+            - make format
+
+        - name: 🧪 Static Code Analysis
+          commands:
+            - make credo
+
+        - name: 🧪 Unit Test
+          commands:
+            - make test
+
+      epilogue:
+        always:
+          commands:
+            - "[[ -f out/results.xml ]] && test-results publish --name \"Unit Test\" out/results.xml"
+
+  - name: 🛡️ Deployment Preconditions
+    dependencies:
+      - 🧪 QA
+    task:
+      secrets:
+        - name: security-toolbox-shared-read-access
+      env_vars:
+        - name: MIX_ENV
+          value: prod
+        - name: DOCKER_BUILDKIT
+          value: "1"
+
+      prologue:
         commands:
-          - make lint-root
-      - name: Unit tests
+          - checkout
+          - mv ~/.ssh/security-toolbox ~/.ssh/id_rsa
+          - sudo chmod 600 ~/.ssh/id_rsa
+          - sem-version ruby 2.7
+      jobs:
+        - name: 🛡️ Check Code
+          commands:
+            - make check.static
+        - name: 🛡️ Check Dependencies
+          commands:
+            - make check.deps
+
+after_pipeline:
+  task:
+    jobs:
+      - name: Submit Reports
         commands:
-          - make test
+          - test-results gen-pipeline-report
 
 promotions:
   - name: "Release on Github"

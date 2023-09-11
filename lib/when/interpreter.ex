@@ -55,13 +55,14 @@ defmodule When.Interpreter do
         end
 
       %{type: :fun, name: name, params: f_params} ->
-         case evaluate_fun(f_params, name, params, opts) do
-           {:ok, value} ->
-             inputs = Inputs.add(inputs, :fun, Atom.to_string(name), f_params, value)
-             prepare_inputs(tail, params, inputs, opts)
+        case evaluate_fun(f_params, name, params, opts) do
+          {:ok, value} ->
+            inputs = Inputs.add(inputs, :fun, Atom.to_string(name), f_params, value)
+            prepare_inputs(tail, params, inputs, opts)
 
-           error -> error
-         end
+          error ->
+            error
+        end
 
       m ->
         {:error, "Expression requires an unknown input format '#{inspect(m)}'."}
@@ -70,32 +71,39 @@ defmodule When.Interpreter do
 
   defp evaluate_fun(f_params, name, params, opts) do
     not_found_error = "Function with name '#{name}' is not found."
+
     :when
     |> Application.get_env(name, {:error, not_found_error})
     |> evaluate_fun_({f_params, name, params}, opts)
   end
 
   defp evaluate_fun_(error = {:error, _msg}, _fun_p, _opts), do: error
+
   defp evaluate_fun_({module, fun, cardinalities}, {f_params, name, params}, opts) do
     if length(f_params) in cardinalities do
       call_function(module, fun, f_params ++ [params], opts)
     else
-      {:error, "Function '#{name}' accepts #{to_str(cardinalities)} parameter(s)"
-                <> " and was provided with #{length(f_params)}."}
+      {:error,
+       "Function '#{name}' accepts #{to_str(cardinalities)} parameter(s)" <>
+         " and was provided with #{length(f_params)}."}
     end
   end
 
-  defp call_function(_mod, _fun, _f_params, [dry_run: true]), do: {:ok, false}
+  defp call_function(_mod, _fun, _f_params, dry_run: true), do: {:ok, false}
+
   defp call_function(module, fun, f_params, _opts) do
     case apply(module, fun, f_params) do
-      {:ok, value} -> {:ok, value}
+      {:ok, value} ->
+        {:ok, value}
 
       {:error, {err_type, e}} when is_atom(err_type) ->
-          {:error, {err_type, "Function '#{fun}' returned error: #{to_str(e)}"}}
+        {:error, {err_type, "Function '#{fun}' returned error: #{to_str(e)}"}}
 
-      {:error, e} -> {:error, "Function '#{fun}' returned error: #{to_str(e)}"}
+      {:error, e} ->
+        {:error, "Function '#{fun}' returned error: #{to_str(e)}"}
 
-      error -> {:error, "Function '#{fun}' returned unsupported value: #{to_str(error)}"}
+      error ->
+        {:error, "Function '#{fun}' returned unsupported value: #{to_str(error)}"}
     end
   end
 
@@ -108,11 +116,14 @@ defmodule When.Interpreter do
   # Utility
 
   defp to_str(val) when is_binary(val), do: val
+
   defp to_str([elem | list]) when is_integer(elem) and is_list(list) and length(list) >= 2 do
     "#{elem}, #{to_str(list)}"
   end
+
   defp to_str(list) when is_list(list) and length(list) == 2,
     do: "#{Enum.at(list, 0)} or #{Enum.at(list, 1)}"
+
   defp to_str(list) when is_list(list) and length(list) == 1, do: "#{Enum.at(list, 0)}"
-  defp to_str(val), do: "#{inspect val}"
+  defp to_str(val), do: "#{inspect(val)}"
 end
