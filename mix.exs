@@ -5,9 +5,10 @@ defmodule When.MixProject do
     [
       app: :when,
       version: "0.1.0",
-      elixir: "~> 1.12",
+      elixir: "~> 1.16",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      compilers: [:yecc, :leex] ++ Mix.compilers(),
       escript: escript()
     ]
   end

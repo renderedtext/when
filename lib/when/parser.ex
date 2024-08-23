@@ -13,20 +13,20 @@ defmodule When.Parser do
   end
 
   defp pretty_error(
-         {:error, {line_no, :when_parser, ['syntax error before: ', [[_, _, operator, _, _]]]}}
+         {:error, {line_no, :when_parser, [~c"syntax error before: ", [[_, _, operator, _, _]]]}}
        ) do
     {:error,
      "Syntax error on line #{line_no}. - " <>
        "Invalid expression on the left of '#{rm_qoutes(operator)}' operator."}
   end
 
-  defp pretty_error({:error, {line_no, :when_parser, ['syntax error before: ', []]}}) do
+  defp pretty_error({:error, {line_no, :when_parser, [~c"syntax error before: ", []]}}) do
     {:error,
      "Syntax error on line #{line_no}. - " <>
        "Invalid or incomplete expression at the end of the line."}
   end
 
-  defp pretty_error({:error, {line_no, :when_parser, ['syntax error before: ', bracket]}}) do
+  defp pretty_error({:error, {line_no, :when_parser, [~c"syntax error before: ", bracket]}}) do
     {:error,
      "Syntax error on line #{line_no}. - " <>
        "Invalid expression on the left of '#{rm_qoutes(bracket)}'."}

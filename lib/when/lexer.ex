@@ -18,7 +18,7 @@ defmodule When.Lexer do
   defp pretty_error({:error, {line_no, :when_lexer, {:illegal, characters}}, _no}) do
     {:error,
      "Lexical error on line #{line_no}. - " <>
-       "Illegal characters: #{inspect(characters)}."}
+       "Illegal characters: '#{to_str(characters)}'."}
   end
 
   defp pretty_error({:error, error}) do
@@ -28,4 +28,16 @@ defmodule When.Lexer do
   defp pretty_error(error) do
     {:error, "Lexical error - Unrecongnized error: #{inspect(error)}"}
   end
+
+  defp to_str(value) when is_binary(value), do: value
+
+  defp to_str(value) when is_list(value) do
+    if List.ascii_printable?(value) do
+      List.to_string(value)
+    else
+      "#{inspect(value)}"
+    end
+  end
+
+  defp to_str(value), do: "#{inspect(value)}"
 end
