@@ -4,7 +4,12 @@ APP_NAME=when
 
 export MIX_ENV?=dev
 
-BRANCH=$(shell git rev-parse --abbrev-ref HEAD | sed 's/[^a-z]//g')
+BRANCH := $(shell branch=$$(git rev-parse --abbrev-ref HEAD); \
+                if [ "$$branch" = "HEAD" ]; then \
+                    echo "master"; \
+                else \
+                    echo "$$branch" | sed 's/[^a-z]//g'; \
+                fi)
 SECURITY_TOOLBOX_BRANCH?=master
 SECURITY_TOOLBOX_TMP_DIR?=/tmp/security-toolbox
 REGISTRY_HOST?=local
