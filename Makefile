@@ -49,12 +49,12 @@ test: export MIX_ENV=test
 test: build
 	docker run --rm $(VOLUME_BIND) -v $(PWD)/out:/app/out $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix test $(FILE) $(FLAGS)
 
-escript.build: export MIX_ENV=prod
-escript.build: build
-	docker run --rm --volume $(PWD):/app $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix escript.build
+escript.build: 
+	docker run --rm --volume $(PWD):/app $(CONTAINER_ENV_VARS) $(IMAGE):$(IMAGE_TAG) mix escript.build
 
-setup:
-	$(MAKE) cmd MIX_ENV=prod CMD="mix do deps.get, deps.compile"
+prod.setup: export MIX_ENV=prod
+prod.setup: build
+	docker run --rm --volume $(PWD):/app $(CONTAINER_ENV_VARS) $(IMAGE):$(IMAGE_TAG) mix do deps.get, deps.compile
 
 cmd: build
 	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS) $(IMAGE):$(IMAGE_TAG) $(CMD)

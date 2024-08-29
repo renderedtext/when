@@ -15,6 +15,6 @@ blocks:
         - name: Release
           commands:
             - checkout
-            - make setup
-            - make escript.build
+            - make prod.setup
+            - MIX_ENV=prod make escript.build
             - bash .semaphore/release.sh
