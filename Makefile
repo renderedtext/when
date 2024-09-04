@@ -37,7 +37,9 @@ ifneq ($(CI),)
 endif
 
 build:
-	docker build --target $(DOCKER_BUILD_TARGET) --ssh default --build-arg BUILDKIT_INLINE_CACHE=$(BUILDKIT_INLINE_CACHE) --build-arg MIX_ENV=$(MIX_ENV) --cache-from=$(IMAGE):$(IMAGE_TAG) -t $(IMAGE):$(IMAGE_TAG) .
+	docker build --target $(DOCKER_BUILD_TARGET) --ssh default --build-arg BUILDKIT_INLINE_CACHE=$(BUILDKIT_INLINE_CACHE) \
+	             --build-arg MIX_ENV=$(MIX_ENV) --build-arg ERLANG_VERSION=$(ERLANG_VERSION) \
+				 --cache-from=$(IMAGE):$(IMAGE_TAG) -t $(IMAGE):$(IMAGE_TAG) .
 
 format: build
 	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS) $(IMAGE):$(IMAGE_TAG) mix do format $(DRY_RUN), app.config --warnings-as-errors
@@ -45,9 +47,13 @@ format: build
 credo: build
 	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix credo --all
 
+test.setup: export MIX_ENV=test
+test.setup: build
+	$(MAKE) cmd CMD="mix do deps.get, deps.compile"
+
 test: export MIX_ENV=test
-test: build
-	docker run --rm $(VOLUME_BIND) -v $(PWD)/out:/app/out $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix test $(FILE) $(FLAGS)
+test: 
+	docker run --rm $(VOLUME_BIND) -v $(PWD)/out:/app/out $(CONTAINER_ENV_VARS) $(IMAGE):$(IMAGE_TAG) mix test $(FILE) $(FLAGS)
 
 escript.build: 
 	docker run --rm --volume $(PWD):/app $(CONTAINER_ENV_VARS) $(IMAGE):$(IMAGE_TAG) mix escript.build

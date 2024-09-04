@@ -2,11 +2,8 @@ defmodule When.CLITest do
   use ExUnit.Case
 
   describe "list-inputs" do
-    def list(expressions) do
-      input = Poison.encode!(expressions)
-
-      File.write("/tmp/input.json", input)
-      When.CLI.main(["list-inputs", "--input", "/tmp/input.json", "--output", "/tmp/output.json"])
+    def list(test_file) do
+      When.CLI.main(["list-inputs", "--input", test_file, "--output", "/tmp/output.json"])
 
       output = File.read!("/tmp/output.json")
 
@@ -14,12 +11,9 @@ defmodule When.CLITest do
     end
 
     test "it produces a list of necessary inputs for each when expression" do
-      expressions = [
-        "branch = 'master'",
-        "change_in('/lib')"
-      ]
+      test_file = "test/files/inputs/valid.json"
 
-      result = list(expressions)
+      result = list(test_file)
 
       assert result == [
                %{
@@ -34,13 +28,9 @@ defmodule When.CLITest do
     end
 
     test "if the expressions is invalid" do
-      expressions = [
-        "branch = 'master' and ahahahahaha",
-        "branch = true",
-        "{branch or false}"
-      ]
+      test_file = "test/files/inputs/invalid.json"
 
-      result = list(expressions)
+      result = list(test_file)
 
       assert length(result) == 3
 
@@ -62,11 +52,8 @@ defmodule When.CLITest do
   end
 
   describe "reduce" do
-    def reduce(expressions) do
-      input = Poison.encode!(expressions)
-
-      File.write("/tmp/input.json", input)
-      When.CLI.main(["reduce", "--input", "/tmp/input.json", "--output", "/tmp/output.json"])
+    def reduce(test_file) do
+      When.CLI.main(["reduce", "--input", test_file, "--output", "/tmp/output.json"])
 
       output = File.read!("/tmp/output.json")
 
@@ -74,30 +61,9 @@ defmodule When.CLITest do
     end
 
     test "it reduces the expressions" do
-      expressions = [
-        %{
-          "expression" => "branch = 'master'",
-          "inputs" => %{
-            "keywords" => %{"branch" => "master"},
-            "functions" => %{}
-          }
-        },
-        %{
-          "expression" => "change_in('/lib')",
-          "inputs" => %{
-            "keywords" => %{},
-            "functions" => [
-              %{
-                "name" => "change_in",
-                "params" => ["/lib"],
-                "result" => false
-              }
-            ]
-          }
-        }
-      ]
+      test_file = "test/files/inputs/reduce.json"
 
-      result = reduce(expressions)
+      result = reduce(test_file)
 
       assert result == [
                %{"result" => "true", "error" => ""},
@@ -106,24 +72,9 @@ defmodule When.CLITest do
     end
 
     test "if some inputs are missing" do
-      expressions = [
-        %{
-          "expression" => "branch = 'master'",
-          "inputs" => %{
-            "keywords" => %{},
-            "functions" => []
-          }
-        },
-        %{
-          "expression" => "change_in('/lib')",
-          "inputs" => %{
-            "keywords" => %{},
-            "functions" => []
-          }
-        }
-      ]
+      test_file = "test/files/inputs/missing_input.json"
 
-      result = reduce(expressions)
+      result = reduce(test_file)
 
       assert length(result) == 2
 

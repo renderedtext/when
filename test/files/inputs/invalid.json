@@ -1,0 +1,5 @@
+[
+    "branch = 'master' and ahahahahaha",
+    "branch = true",
+    "{branch or false}"
+]
