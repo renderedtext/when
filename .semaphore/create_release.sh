@@ -11,10 +11,3 @@ curl \
   -H "Accept: application/vnd.github.v3+json" \
   https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases \
   -d '{"tag_name":"'$SEMAPHORE_GIT_TAG_NAME'"}'
-
-export RELEASE_ID=$(curl --silent https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/tags/$SEMAPHORE_GIT_TAG_NAME | grep -m1 'id' | awk '{print $2}' | tr -d ',' )
-
-curl -X POST -H "Authorization: token $GITHUB_TOKEN" \
-  -H "Accept: application/vnd.github.v3+json" \
-  -H "Content-Type: $(file -b --mime-type when)" \
-  --data-binary @when "https://uploads.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/$RELEASE_ID/assets?name=when"
