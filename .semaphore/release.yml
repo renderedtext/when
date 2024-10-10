@@ -18,7 +18,7 @@ blocks:
             - bash .semaphore/create_release.sh
 
   - name: "Upload Assets"
-    dependencies: []
+    dependencies: ["Create Release"]
     task:
       secrets:
         - name: sem-robot-ghtoken
