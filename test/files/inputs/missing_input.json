@@ -1,0 +1,16 @@
+[
+    {
+        "inputs": {
+            "keywords": {},
+            "functions": []
+        },
+        "expression": "branch = 'master'"
+    },
+    {
+        "inputs": {
+            "keywords": {},
+            "functions": []
+        },
+        "expression": "change_in('/lib')"
+    }
+]

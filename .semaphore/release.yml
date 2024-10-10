@@ -1,20 +1,35 @@
 version: v1.0
-name: Release
+name: Release new version
 agent:
   machine:
     type: e2-standard-2
     os_image: ubuntu2004
 
 blocks:
-  - name: "Release"
+  - name: "Create Release"
+    dependencies: []
     task:
       secrets:
         - name: sem-robot-ghtoken
 
       jobs:
-        - name: Release
+        - name: Create Release
+          commands:
+            - bash .semaphore/create_release.sh
+
+  - name: "Upload Assets"
+    dependencies: ["Create Release"]
+    task:
+      secrets:
+        - name: sem-robot-ghtoken
+
+      jobs:
+        - name: Upload when binary asset
+          matrix:
+            - env_var: ERLANG_VERSION
+              values: [ "24", "25", "26"]
           commands:
             - checkout
-            - make setup
-            - make escript.build
-            - bash .semaphore/release.sh
+            - make prod.setup
+            - MIX_ENV=prod make escript.build
+            - bash .semaphore/upload_asset.sh

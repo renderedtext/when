@@ -1,0 +1,26 @@
+[
+    {
+        "inputs": {
+            "keywords": {
+                "branch": "master"
+            },
+            "functions": {}
+        },
+        "expression": "branch = 'master'"
+    },
+    {
+        "inputs": {
+            "keywords": {},
+            "functions": [
+                {
+                    "result": false,
+                    "params": [
+                        "/lib"
+                    ],
+                    "name": "change_in"
+                }
+            ]
+        },
+        "expression": "change_in('/lib')"
+    }
+]

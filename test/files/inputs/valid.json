@@ -1,0 +1,4 @@
+[
+    "branch = 'master'",
+    "change_in('/lib')"
+]

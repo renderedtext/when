@@ -1,9 +1,13 @@
-FROM elixir:1.16.3 as base
+# Define an ARG to parameterize the Erlang version, with an empty default value
+ARG ERLANG_VERSION
+
+# Conditionally set the base image using the ARG value, or default to "elixir:1.16.3"
+FROM elixir:1.16.3${ERLANG_VERSION:+-otp-$ERLANG_VERSION} as base
 
 ARG MIX_ENV=prod
 ENV MIX_ENV=$MIX_ENV
 
-RUN echo "Build for $MIX_ENV environment started"
+RUN echo "Build for $MIX_ENV environment on elixir:1.16.3${ERLANG_VERSION:+-otp-$ERLANG_VERSION} started"
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
