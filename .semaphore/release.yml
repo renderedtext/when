@@ -15,6 +15,7 @@ blocks:
       jobs:
         - name: Create Release
           commands:
+            - checkout
             - bash .semaphore/create_release.sh
 
   - name: "Upload Assets"
