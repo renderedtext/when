@@ -102,7 +102,7 @@ defmodule When.Test do
     assert {:ok, false} = When.evaluate("pull_request !~ '.*'", params)
   end
 
-  @invald_strings_parser [
+  @invalid_strings_parser [
     "(true and false) = 'master'",
     "'master' != (true and false)",
     "and branch != 'master'",
@@ -143,7 +143,7 @@ defmodule When.Test do
   test "returns syntax error when given string with invalid syntax" do
     params = @valid_params_examples |> Enum.at(0)
 
-    @invald_strings_parser
+    @invalid_strings_parser
     |> Enum.with_index()
     |> Enum.map(fn {string, index} ->
       assert {:error, message} = When.evaluate(string, params)
@@ -154,14 +154,14 @@ defmodule When.Test do
     end)
   end
 
-  @invald_strings_lexer [
+  @invalid_strings_lexer [
     "branch ! = 'bad operator'",
     "# branch = 'unsupported-characters'",
     "_identifier_needs_to_start_with_lettter(123)",
-    "cant_contain_&^('identifier only accepts alfa-numerics, uderscores and dashes')",
+    "cant_contain_&^('identifier only accepts alphanumerics, underscores and dashes')",
     "fun(123.0) and invalid_number(123.456.2323)",
     "{_map_key_needs_to_start_with_lettter: 123}",
-    "{map_key_cant_contain_&^: 'it only accepts alfa-numerics, uderscores and dashes'}"
+    "{map_key_cant_contain_&^: 'it only accepts alphanumerics, underscores and dashes'}"
   ]
 
   @error_messages_lexer [
@@ -177,7 +177,7 @@ defmodule When.Test do
   test "lexer returns error when invalid string is given" do
     params = @valid_params_examples |> Enum.at(0)
 
-    @invald_strings_lexer
+    @invalid_strings_lexer
     |> Enum.with_index()
     |> Enum.map(fn {string, index} ->
       assert {:error, message} = When.evaluate(string, params)
@@ -195,7 +195,7 @@ defmodule When.Test do
     assert {:ok, false} = When.evaluate(string, params, dry_run: true)
   end
 
-  test "when 'dry_run: true' option is given => funtions are not executed" do
+  test "when 'dry_run: true' option is given => functions are not executed" do
     string = "failing_fun('param 1')"
     params = @valid_params_examples |> Enum.at(0)
 

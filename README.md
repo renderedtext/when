@@ -194,7 +194,7 @@ promotions:
       when: "(branch = 'master' OR tag =~ '.*') AND result = 'passed'"
 ```
 
-## Skip block exection
+## Skip block execution
 
 ### Skip always
 
@@ -356,3 +356,7 @@ queue:
     cancel:
       when: "tag =~ '.*'"
 ```
+
+## License
+
+This software is licensed under [the Apache 2.0 license](LICENSE).
