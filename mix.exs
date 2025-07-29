@@ -5,7 +5,7 @@ defmodule When.MixProject do
     [
       app: :when,
       version: "0.1.0",
-      elixir: "~> 1.16",
+      elixir: "~> " <> elixir_version(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       compilers: [:yecc, :leex] ++ Mix.compilers(),
@@ -27,5 +27,9 @@ defmodule When.MixProject do
 
   defp escript do
     [main_module: When.CLI]
+  end
+
+  defp elixir_version do
+    System.get_env("ELIXIR_VERSION") || "1.16"
   end
 end

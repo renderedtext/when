@@ -33,6 +33,8 @@ blocks:
           matrix:
             - env_var: ERLANG_VERSION
               values: [ "24", "25", "26"]
+            - env_var: ELIXIR_VERSION
+              values: [ "1.16.3"]
           commands:
             - make test.setup
             - make test
@@ -51,8 +53,8 @@ blocks:
             - mv test/script/test_reduce.sh ./test_reduce.sh
             - sudo chmod +x test_list_inputs.sh
             - sudo chmod +x test_reduce.sh
-            - ./test_list_inputs.sh 
-            - ./test_reduce.sh 
+            - ./test_list_inputs.sh
+            - ./test_reduce.sh
 
       epilogue:
         always:
