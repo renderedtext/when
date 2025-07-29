@@ -41,9 +41,13 @@ build:
 	             --build-arg MIX_ENV=$(MIX_ENV) --build-arg ERLANG_VERSION=$(ERLANG_VERSION) --build-arg ELIXIR_VERSION=$(ELIXIR_VERSION) \
 				 --cache-from=$(IMAGE):$(IMAGE_TAG) -t $(IMAGE):$(IMAGE_TAG) .
 
+format: ERLANG_VERSION=26
+format: ELIXIR_VERSION=1.16.3
 format: build
 	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS) $(IMAGE):$(IMAGE_TAG) mix do format $(DRY_RUN), app.config --warnings-as-errors
 
+credo: ERLANG_VERSION=26
+credo: ELIXIR_VERSION=1.16.3
 credo: build
 	docker run --rm $(VOLUME_BIND) $(CONTAINER_ENV_VARS)  $(IMAGE):$(IMAGE_TAG) mix credo --all
 
