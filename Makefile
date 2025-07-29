@@ -1,4 +1,4 @@
-.PHONY: console test
+.PHONY: console test test.matrix
 
 APP_NAME=when
 
@@ -38,7 +38,7 @@ endif
 
 build:
 	docker build --target $(DOCKER_BUILD_TARGET) --ssh default --build-arg BUILDKIT_INLINE_CACHE=$(BUILDKIT_INLINE_CACHE) \
-	             --build-arg MIX_ENV=$(MIX_ENV) --build-arg ERLANG_VERSION=$(ERLANG_VERSION) \
+	             --build-arg MIX_ENV=$(MIX_ENV) --build-arg ERLANG_VERSION=$(ERLANG_VERSION) --build-arg ELIXIR_VERSION=$(ELIXIR_VERSION) \
 				 --cache-from=$(IMAGE):$(IMAGE_TAG) -t $(IMAGE):$(IMAGE_TAG) .
 
 format: build
@@ -52,10 +52,22 @@ test.setup: build
 	$(MAKE) cmd CMD="mix do deps.get, deps.compile"
 
 test: export MIX_ENV=test
-test: 
+test:
 	docker run --rm $(VOLUME_BIND) -v $(PWD)/out:/app/out $(CONTAINER_ENV_VARS) $(IMAGE):$(IMAGE_TAG) mix test $(FILE) $(FLAGS)
 
-escript.build: 
+# Run tests on all combinations of Erlang and Elixir versions
+test.matrix: export MIX_ENV=test
+test.matrix:
+	@echo "Running tests on all Erlang/Elixir combinations"
+	@for erlang_version in 24 25 26 27; do \
+		for elixir_version in 1.14.5 1.15.7 1.16.3 1.17.3; do \
+			echo "\n\n=== Testing with Erlang $$erlang_version and Elixir $$elixir_version ==="; \
+			ERLANG_VERSION=$$erlang_version ELIXIR_VERSION=$$elixir_version $(MAKE) build && \
+			ERLANG_VERSION=$$erlang_version ELIXIR_VERSION=$$elixir_version $(MAKE) test || exit 1; \
+		done; \
+	done
+
+escript.build:
 	docker run --rm --volume $(PWD):/app $(CONTAINER_ENV_VARS) $(IMAGE):$(IMAGE_TAG) mix escript.build
 
 prod.setup: export MIX_ENV=prod
