@@ -21,7 +21,7 @@ defmodule When.MixProject do
     [
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:junit_formatter, "~> 3.1", only: [:test]},
-      {:poison, "~> 4.0"}
+      {:poison, "~> 6.0"}
     ]
   end
 
