@@ -1,0 +1,28 @@
+[
+    {
+        "inputs": {
+            "keywords": {
+                "branch": "feature",
+                "tag": "staging",
+                "pull_request": "1.0.0"
+            },
+            "functions": [
+                {
+                    "result": true,
+                    "params": [
+                        "/src"
+                    ],
+                    "name": "change_in"
+                },
+                {
+                    "result": false,
+                    "params": [
+                        "/test"
+                    ],
+                    "name": "change_in"
+                }
+            ]
+        },
+        "expression": "(branch = 'feature' and (change_in('/src') or (tag = 'staging' and pull_request = '1.0.0'))) and (change_in('/test') != true)"
+    }
+]

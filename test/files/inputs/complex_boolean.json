@@ -1,0 +1,27 @@
+[
+    {
+        "inputs": {
+            "keywords": {
+                "branch": "master",
+                "tag": "production"
+            },
+            "functions": [
+                {
+                    "result": true,
+                    "params": [
+                        "/lib"
+                    ],
+                    "name": "change_in"
+                },
+                {
+                    "result": false,
+                    "params": [
+                        "/docs"
+                    ],
+                    "name": "change_in"
+                }
+            ]
+        },
+        "expression": "branch = 'master' and (change_in('/lib') or tag = 'production') and change_in('/docs') != true"
+    }
+]

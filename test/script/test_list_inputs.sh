@@ -1,20 +1,20 @@
 #!/bin/bash
 
 # Export test files as a comma-separated string
-export TEST_FILES="valid.json,invalid.json"
+export TEST_FILES="valid.json,invalid.json,empty.json,complex_expressions.json,special_chars.json,long_expression.json,unicode_chars.json"
 
 # Convert the comma-separated string into an array
 IFS=',' read -r -a TEST_FILES_ARRAY <<< "$TEST_FILES"
 
 # Loop through each test file
 for TEST_FILE in "${TEST_FILES_ARRAY[@]}"; do
-  echo "Running 'when list-inputs' for $TEST_FILE..."  
+  echo "Running 'when list-inputs' for $TEST_FILE..."
 
   # Run the when binary command with the input and output file
   ./when list-inputs --input "test/files/inputs/$TEST_FILE" --output "/tmp/out.$TEST_FILE"
 
   # Compare the output with the expected file
-  if ! diff "/tmp/out.$TEST_FILE" "test/files/expected_result/$TEST_FILE" > /dev/null 
+  if ! diff "/tmp/out.$TEST_FILE" "test/files/expected_result/$TEST_FILE" > /dev/null
   then
     echo "Error while running when binary for file $TEST_FILE."
     echo "Expected:"

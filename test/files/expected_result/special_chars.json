@@ -1,0 +1,1 @@
+[{"inputs":[{"type":"keyword","name":"branch"}],"error":""},{"inputs":[{"type":"keyword","name":"branch"},{"params":["\\/path\\/with\\/escapes"],"type":"fun","name":"change_in"}],"error":""},{"inputs":[{"type":"keyword","name":"branch"},{"params":["/path/with/\"quotes\""],"type":"fun","name":"change_in"}],"error":""}]
