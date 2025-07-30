@@ -39,7 +39,7 @@ blocks:
             - make test.setup
             - make test
 
-        - name: 🧪 Unit Test - Erlang 27
+        - name: 🧪 Unit Test
           matrix:
             - env_var: ERLANG_VERSION
               values: [ "27"]

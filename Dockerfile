@@ -3,7 +3,7 @@ ARG ELIXIR_VERSION=1.17.3
 ARG ERLANG_VERSION=27
 
 # Conditionally set the base image using the ARG value, or default to "elixir:1.16.3"
-FROM elixir:${ELIXIR_VERSION}-otp-${ERLANG_VERSION} as base
+FROM elixir:${ELIXIR_VERSION}-otp-${ERLANG_VERSION} AS base
 
 ARG MIX_ENV=prod
 ENV MIX_ENV=$MIX_ENV

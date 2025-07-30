@@ -31,6 +31,7 @@ blocks:
 
         - name: 🧪 Unit Test
           commands:
+            - make test.setup
             - make test
 
       epilogue:
