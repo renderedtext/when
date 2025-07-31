@@ -1,0 +1,20 @@
+[
+    {
+        "inputs": {
+            "keywords": {
+                "branch": 123,
+                "tag": true
+            },
+            "functions": [
+                {
+                    "result": "not_a_boolean",
+                    "params": [
+                        "/lib"
+                    ],
+                    "name": "change_in"
+                }
+            ]
+        },
+        "expression": "branch = 'master' and tag = 'production' and change_in('/lib')"
+    }
+]

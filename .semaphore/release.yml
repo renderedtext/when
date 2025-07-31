@@ -28,8 +28,13 @@ blocks:
         - name: Upload when binary asset
           matrix:
             - env_var: ERLANG_VERSION
-              values: [ "24", "25", "26"]
+              values: [ "24", "25", "26", "27"]
           commands:
+            - ELIXIR_VERSION=1.16.3
+            - |
+              if [ "$ERLANG_VERSION" = "27" ]; then
+                ELIXIR_VERSION=1.17.3
+              fi
             - checkout
             - make prod.setup
             - MIX_ENV=prod make escript.build

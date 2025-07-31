@@ -1,0 +1,57 @@
+[
+    {
+        "inputs": {
+            "keywords": {
+                "branch": "",
+                "result": "true"
+            },
+            "functions": [
+                {
+                    "result": "true",
+                    "params": [
+                        "test"
+                    ],
+                    "name": "change_in"
+                }
+            ]
+        },
+        "expression": "branch = '' and change_in('test')"
+    },
+    {
+        "inputs": {
+            "keywords": {
+                "branch": "",
+                "result": "true"
+            },
+            "functions": [
+                {
+                    "result": "true",
+                    "params": [
+                        "/test"
+                    ],
+                    "name": "change_in"
+                }
+            ]
+        },
+        "expression": "branch = 'test' and change_in('/test')"
+    },
+    {
+        "inputs": {
+            "keywords": {
+                "branch": ""
+            },
+            "functions": []
+        },
+        "expression": "branch = ''"
+    }
+    ,
+    {
+        "inputs": {
+            "keywords": {
+                "branch": ""
+            },
+            "functions": []
+        },
+        "expression": "branch = 'test'"
+    }
+]

@@ -1,0 +1,4 @@
+[
+    "branch = 'master' and change_in('/lib') and change_in('/src') and change_in('/test') and change_in('/docs') and change_in('/config') and change_in('/scripts') and change_in('/examples') and change_in('/assets') and change_in('/public')",
+    "branch != 'development' and change_in('/lib') != true and change_in('/src') != true and change_in('/test') != true and change_in('/docs') != true and change_in('/config') != true and change_in('/scripts') != true and change_in('/examples') != true and change_in('/assets') != true and change_in('/public') != true"
+]

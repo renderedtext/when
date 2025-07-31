@@ -1,0 +1,5 @@
+[
+    "branch = 'feature\\/special'",
+    "branch = 'master' and change_in('\\/path\\/with\\/escapes')",
+    "branch = '\"quoted-branch\"' and change_in('/path/with/\"quotes\"')"
+]

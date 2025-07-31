@@ -33,6 +33,18 @@ blocks:
           matrix:
             - env_var: ERLANG_VERSION
               values: [ "24", "25", "26"]
+            - env_var: ELIXIR_VERSION
+              values: [ "1.16.3"]
+          commands:
+            - make test.setup
+            - make test
+
+        - name: 🧪 Unit Test - Erlang 27
+          matrix:
+            - env_var: ERLANG_VERSION
+              values: [ "27"]
+            - env_var: ELIXIR_VERSION
+              values: [ "1.17.3"]
           commands:
             - make test.setup
             - make test
@@ -40,24 +52,29 @@ blocks:
         - name: 🧪 Escript Binary Test
           matrix:
             - env_var: ERLANG_VERSION
-              values: [ "24", "25", "26"]
+              values: [ "24", "25", "26", "27" ]
           commands:
-            - sem-version elixir 1.16.3
+            - ELIXIR_VERSION=1.16.3
+            - |
+              if [ "$ERLANG_VERSION" = "27" ]; then
+                ELIXIR_VERSION=1.17.3
+              fi
+            - sem-version elixir $ELIXIR_VERSION
             - sem-version erlang $ERLANG_VERSION
+            - sudo apt update
+            - sudo apt install -y bc
             - make prod.setup
             - MIX_ENV=prod make escript.build
             - sudo chmod +x when
             - mv test/script/test_list_inputs.sh ./test_list_inputs.sh
             - mv test/script/test_reduce.sh ./test_reduce.sh
-            - sudo chmod +x test_list_inputs.sh
-            - sudo chmod +x test_reduce.sh
-            - ./test_list_inputs.sh 
-            - ./test_reduce.sh 
+            - mv test/script/run_escript_binary_test_suite.sh ./run_escript_binary_test_suite.sh
+            - ./run_escript_binary_test_suite.sh
 
       epilogue:
         always:
           commands:
-            - "[[ -f out/results.xml ]] && test-results publish --name \"Unit Test\" out/results.xml"
+            - '[[ -f out/results.xml ]] && test-results publish --name "$SEMAPHORE_JOB_NAME" out/results.xml'
 
   - name: 🛡️ Deployment Preconditions
     dependencies:

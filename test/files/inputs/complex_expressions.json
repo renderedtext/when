@@ -1,0 +1,5 @@
+[
+    "branch = 'master' and (change_in('/lib') or change_in('/test'))",
+    "branch != 'dev' and change_in('/docs') != true",
+    "(branch = 'feature' or branch = 'hotfix') and change_in('/src')"
+]
