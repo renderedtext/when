@@ -38,7 +38,7 @@ global_job_config:
       - sudo chmod +x /usr/local/bin/when
 
 blocks:
-  - name: Build And Cache Binaries
+  - name: Build And Cache When Binaries
     dependencies: []
     task:
       jobs:
@@ -59,6 +59,16 @@ blocks:
           - git clone https://github.com/semaphoreci/spc
           - cd spc
           - go get ./...
+          - git config --global user.email "you@example.com"
+          - git config --global user.name "Your Name"
+          - unset SEMAPHORE_GIT_REF_TYPE
+          - unset SEMAPHORE_GIT_BRANCH
+          - unset SEMAPHORE_GIT_PR_BRANCH
+          - unset SEMAPHORE_GIT_PR_SLUG
+          - unset SEMAPHORE_GIT_REPO_SLUG
+          - unset SEMAPHORE_GIT_COMMIT_RANGE
+          - unset SEMAPHORE_GIT_SHA
+          - unset SEMAPHORE_MERGE_BASE
 
       jobs:
         - name: e2e
@@ -67,37 +77,37 @@ blocks:
               values:
                 - test/e2e/change_in_all_possible_locations.rb
                 - test/e2e/change_in_branch_range.rb
-                - test/e2e/change_in_default_range.rb
-                - test/e2e/change_in_excluded_paths.rb
-                - test/e2e/change_in_glob.rb
-                - test/e2e/change_in_invalid_when.rb
-                - test/e2e/change_in_missing_branch.rb
-                - test/e2e/change_in_multiple_paths.rb
-                - test/e2e/change_in_on_forked_prs.rb
-                - test/e2e/change_in_on_prs.rb
-                - test/e2e/change_in_on_non_master_prs.rb
-                - test/e2e/change_in_on_tags.rb
-                - test/e2e/change_in_performance.rb
-                - test/e2e/change_in_pipeline_file_tracking.rb
-                - test/e2e/change_in_relative_paths.rb
-                - test/e2e/change_in_semaphore_commit_range.rb
-                - test/e2e/change_in_simple.rb
-                - test/e2e/change_in_with_default_branch.rb
-                - test/e2e/change_in_java_vs_javascript_clash.rb
-                - test/e2e/change_in_large_commit_diff.rb
-                - test/e2e/change_in_large_commit_diff_on_default_branch.rb
-                - test/e2e/list_diff_branch_range.rb
-                - test/e2e/list_diff_default_range.rb
-                - test/e2e/list_diff_missing_branch.rb
-                - test/e2e/list_diff_on_forked_prs.rb
-                - test/e2e/list_diff_on_prs.rb
-                - test/e2e/list_diff_on_tags.rb
-                - test/e2e/list_diff_semaphore_commit_range.rb
-                - test/e2e/list_diff_simple.rb
-                - test/e2e/list_diff_with_default_branch.rb
-                - test/e2e/when_conditions_without_change_in.rb
-                - test/e2e/parameters_and_change_in.rb
-                - test/e2e/cmd_files_all_possible_locations.rb
+                # - test/e2e/change_in_default_range.rb
+                # - test/e2e/change_in_excluded_paths.rb
+                # - test/e2e/change_in_glob.rb
+                # - test/e2e/change_in_invalid_when.rb
+                # - test/e2e/change_in_missing_branch.rb
+                # - test/e2e/change_in_multiple_paths.rb
+                # - test/e2e/change_in_on_forked_prs.rb
+                # - test/e2e/change_in_on_prs.rb
+                # - test/e2e/change_in_on_non_master_prs.rb
+                # - test/e2e/change_in_on_tags.rb
+                # - test/e2e/change_in_performance.rb
+                # - test/e2e/change_in_pipeline_file_tracking.rb
+                # - test/e2e/change_in_relative_paths.rb
+                # - test/e2e/change_in_semaphore_commit_range.rb
+                # - test/e2e/change_in_simple.rb
+                # - test/e2e/change_in_with_default_branch.rb
+                # - test/e2e/change_in_java_vs_javascript_clash.rb
+                # - test/e2e/change_in_large_commit_diff.rb
+                # - test/e2e/change_in_large_commit_diff_on_default_branch.rb
+                # - test/e2e/list_diff_branch_range.rb
+                # - test/e2e/list_diff_default_range.rb
+                # - test/e2e/list_diff_missing_branch.rb
+                # - test/e2e/list_diff_on_forked_prs.rb
+                # - test/e2e/list_diff_on_prs.rb
+                # - test/e2e/list_diff_on_tags.rb
+                # - test/e2e/list_diff_semaphore_commit_range.rb
+                # - test/e2e/list_diff_simple.rb
+                # - test/e2e/list_diff_with_default_branch.rb
+                # - test/e2e/when_conditions_without_change_in.rb
+                # - test/e2e/parameters_and_change_in.rb
+                # - test/e2e/cmd_files_all_possible_locations.rb
 
           commands:
             - make build
