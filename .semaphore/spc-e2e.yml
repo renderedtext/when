@@ -1,0 +1,77 @@
+version: v1.0
+name: Go
+agent:
+  machine:
+    type: e2-standard-2
+    os_image: ubuntu2204
+
+global_job_config:
+  prologue:
+    commands:
+      - sem-version go 1.21
+      - export GO111MODULE=on
+      - export GOPATH=~/go
+      - 'export PATH=/home/semaphore/go/bin:$PATH'
+      - export ERLANG_VERSION=$(erl -eval 'erlang:display(erlang:system_info(otp_release)), halt().' -noshell | tail -n1 | tr -d '"\r')
+      - 'echo "ERLANG_VERSION: ${ERLANG_VERSION}"'
+      - export ELIXIR_VERSION=1.16.3
+      - |
+        if [ "$ERLANG_VERSION" = "27" ]; then
+          export ELIXIR_VERSION=1.17.3
+        fi
+      - checkout
+      - make build
+      - MIX_ENV=prod make escript.build
+      - sudo mv when /usr/local/bin/when
+      - sudo chmod +x /usr/local/bin/when
+      - cd ..
+      - git clone https://github.com/semaphoreci/spc
+      - cd spc
+      - go get ./...
+
+blocks:
+  - name: E2E
+    dependencies: []
+    task:
+      jobs:
+        - name: e2e
+          matrix:
+            - env_var: TEST_FILE
+              values:
+                - test/e2e/change_in_all_possible_locations.rb
+                - test/e2e/change_in_branch_range.rb
+                - test/e2e/change_in_default_range.rb
+                - test/e2e/change_in_excluded_paths.rb
+                - test/e2e/change_in_glob.rb
+                - test/e2e/change_in_invalid_when.rb
+                - test/e2e/change_in_missing_branch.rb
+                - test/e2e/change_in_multiple_paths.rb
+                - test/e2e/change_in_on_forked_prs.rb
+                - test/e2e/change_in_on_prs.rb
+                - test/e2e/change_in_on_non_master_prs.rb
+                - test/e2e/change_in_on_tags.rb
+                - test/e2e/change_in_performance.rb
+                - test/e2e/change_in_pipeline_file_tracking.rb
+                - test/e2e/change_in_relative_paths.rb
+                - test/e2e/change_in_semaphore_commit_range.rb
+                - test/e2e/change_in_simple.rb
+                - test/e2e/change_in_with_default_branch.rb
+                - test/e2e/change_in_java_vs_javascript_clash.rb
+                - test/e2e/change_in_large_commit_diff.rb
+                - test/e2e/change_in_large_commit_diff_on_default_branch.rb
+                - test/e2e/list_diff_branch_range.rb
+                - test/e2e/list_diff_default_range.rb
+                - test/e2e/list_diff_missing_branch.rb
+                - test/e2e/list_diff_on_forked_prs.rb
+                - test/e2e/list_diff_on_prs.rb
+                - test/e2e/list_diff_on_tags.rb
+                - test/e2e/list_diff_semaphore_commit_range.rb
+                - test/e2e/list_diff_simple.rb
+                - test/e2e/list_diff_with_default_branch.rb
+                - test/e2e/when_conditions_without_change_in.rb
+                - test/e2e/parameters_and_change_in.rb
+                - test/e2e/cmd_files_all_possible_locations.rb
+
+          commands:
+            - make build
+            - make e2e TEST=$TEST_FILE

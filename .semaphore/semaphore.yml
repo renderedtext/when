@@ -116,3 +116,5 @@ promotions:
       - result: passed
         branch:
           - "^refs/tags/v*"
+  - name: "SPC E2E"
+    pipeline_file: "spc-e2e.yml"
