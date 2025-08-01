@@ -38,7 +38,7 @@ global_job_config:
       - sudo chmod +x /usr/local/bin/when
 
 blocks:
-  - name: Build And Cache When Binaries
+  - name: Build And Cache Binaries
     dependencies: []
     task:
       jobs:
