@@ -13,41 +13,53 @@ global_job_config:
       value: "1"
   prologue:
     commands:
-      - sem-version go 1.21
-      - export GO111MODULE=on
-      - export GOPATH=~/go
-      - 'export PATH=/home/semaphore/go/bin:$PATH'
       - export ERLANG_VERSION=$(erl -eval 'erlang:display(erlang:system_info(otp_release)), halt().' -noshell | tail -n1 | tr -d '"\r')
-      - export CACHE_KEY=when-${ERLANG_VERSION}-${SEMAPHORE_GIT_SHA}
       - 'echo "ERLANG_VERSION: ${ERLANG_VERSION}"'
       - export ELIXIR_VERSION=1.16.3
       - |
         if [ "$ERLANG_VERSION" = "27" ]; then
           export ELIXIR_VERSION=1.17.3
         fi
-      - cache restore $CACHE_KEY
+      - export BINARY_CACHE_KEY=when_${ERLANG_VERSION}_${SEMAPHORE_GIT_SHA}
+      - cache restore $BINARY_CACHE_KEY
       - |
-        if [ -d "./${CACHE_KEY}" ]; then
-          sudo mv ./${CACHE_KEY}/when /usr/local/bin/when
+        if [ -d "./cache" ] && [ -f "./cache/when" ]; then
+          echo "Binary found in cache, skipping build"
         else
+          echo "Binary not found in cache, building..."
           checkout
-          make build
+          make prod.setup
           MIX_ENV=prod make escript.build
-          mkdir -p ./${CACHE_KEY}
-          cp when ./${CACHE_KEY}/when
-          cache store $CACHE_KEY ./${CACHE_KEY}
-          sudo mv ./${CACHE_KEY}/when /usr/local/bin/when
+          mkdir -p ./cache
+          cp when ./cache/
+          cache store $BINARY_CACHE_KEY ./cache
         fi
+      - sudo cp ./cache/when /usr/local/bin/when
       - sudo chmod +x /usr/local/bin/when
-      - cd ..
-      - git clone https://github.com/semaphoreci/spc
-      - cd spc
-      - go get ./...
 
 blocks:
-  - name: E2E
+  - name: Build And Cache Binaries
     dependencies: []
     task:
+      jobs:
+        - name: build-and-cache
+          commands:
+            - echo "Binary should be built and cached"
+
+  - name: E2E
+    dependencies: ["Build And Cache Binaries"]
+    task:
+      prologue:
+        commands:
+          - sem-version go 1.21
+          - export GO111MODULE=on
+          - export GOPATH=~/go
+          - 'export PATH=/home/semaphore/go/bin:$PATH'
+          - cd $HOME
+          - git clone https://github.com/semaphoreci/spc
+          - cd spc
+          - go get ./...
+
       jobs:
         - name: e2e
           matrix:
