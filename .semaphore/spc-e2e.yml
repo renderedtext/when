@@ -27,7 +27,7 @@ global_job_config:
         fi
       - cache restore $CACHE_KEY
       - |
-        if [ ! -d "./${CACHE_KEY}" ]; then
+        if [ -d "./${CACHE_KEY}" ]; then
           sudo mv ./${CACHE_KEY}/when /usr/local/bin/when
         else
           checkout
