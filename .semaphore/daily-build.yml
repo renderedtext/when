@@ -17,6 +17,10 @@ blocks:
           value: test
         - name: DOCKER_BUILDKIT
           value: "1"
+        - name: ERLANG_VERSION
+          value: "27"
+        - name: ELIXIR_VERSION
+          value: "1.17.3"
       prologue:
         commands:
           - checkout
