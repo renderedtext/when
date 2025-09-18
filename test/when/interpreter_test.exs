@@ -155,4 +155,23 @@ defmodule When.Interpreter.Test do
     do: {:ok, params["branch"] == branch}
 
   def test_fun_4(_list_1, _list_2, _params), do: {:ok, false}
+
+  test "string to string comparisons work correctly" do
+    test_cases = [
+      {{"=", "hello", "hello"}, %{}, true},
+      {{"=", "hello", "world"}, %{}, false},
+      {{"!=", "hello", "world"}, %{}, true},
+      {{"!=", "hello", "hello"}, %{}, false},
+      {{"=~", "hello123", "hello.*"}, %{}, true},
+      {{"=~", "world", "hello.*"}, %{}, false},
+      {{"!~", "world", "hello.*"}, %{}, true},
+      {{"!~", "hello123", "hello.*"}, %{}, false}
+    ]
+
+    test_cases
+    |> Enum.each(fn {ast, params, expected} ->
+      result = Interpreter.evaluate(ast, params)
+      assert result == expected, "Failed for #{inspect(ast)} with params #{inspect(params)}"
+    end)
+  end
 end
