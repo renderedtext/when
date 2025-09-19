@@ -10,6 +10,7 @@ expression -> term : '$1'.
 term -> '(' expression ')'        : '$2'.
 term -> keyword operator string   : {extract_token('$2'), {'keyword', extract_token('$1')}, extract_token('$3')}.
 term -> string operator keyword   : {extract_token('$2'), extract_token('$1'), {'keyword', extract_token('$3')}}.
+term -> string operator string    : {extract_token('$2'), extract_token('$1'), extract_token('$3')}.
 term -> basic_val                 : '$1'.
 term -> fun                       : '$1'.
 term -> fun operator term         : {extract_token('$2'), '$1', '$3'}.

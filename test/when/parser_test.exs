@@ -19,7 +19,11 @@ defmodule When.Parser.Test do
     "(some_fun() or (branch = 'master' and tag =~ 'v1.*')) AND true",
     "branch = 'master' and some_fun([1, 'asd'], []) or [false]",
     "some_fun([[1, 2], ['a', 'b']], false)",
-    "some_fun({}, {a: 12}, {a: {c: 3}, b: [1, 2]}) or [{a: 1, b: 2, a: 5}]"
+    "some_fun({}, {a: 12}, {a: {c: 3}, b: [1, 2]}) or [{a: 1, b: 2, a: 5}]",
+    "'hello' = 'world'",
+    "'test' != 'example'",
+    "'pattern' =~ 'test.*'",
+    "'text' !~ 'number.*'"
   ]
 
   @expected_tokens [
@@ -237,6 +241,26 @@ defmodule When.Parser.Test do
       {:integer, 1, 5},
       {:"}", 1},
       {:"]", 1}
+    ],
+    [
+      {:string, 1, "hello"},
+      {:operator, 1, "="},
+      {:string, 1, "world"}
+    ],
+    [
+      {:string, 1, "test"},
+      {:operator, 1, "!="},
+      {:string, 1, "example"}
+    ],
+    [
+      {:string, 1, "pattern"},
+      {:operator, 1, "=~"},
+      {:string, 1, "test.*"}
+    ],
+    [
+      {:string, 1, "text"},
+      {:operator, 1, "!~"},
+      {:string, 1, "number.*"}
     ]
   ]
 
@@ -264,7 +288,11 @@ defmodule When.Parser.Test do
     {"or", {"and", {"=", {:keyword, "branch"}, "master"}, {:fun, :some_fun, [[1, "asd"], []]}},
      [false]},
     {:fun, :some_fun, [[[1, 2], ["a", "b"]], false]},
-    {"or", {:fun, :some_fun, [%{}, %{a: 12}, %{a: %{c: 3}, b: [1, 2]}]}, [%{a: 5, b: 2}]}
+    {"or", {:fun, :some_fun, [%{}, %{a: 12}, %{a: %{c: 3}, b: [1, 2]}]}, [%{a: 5, b: 2}]},
+    {"=", "hello", "world"},
+    {"!=", "test", "example"},
+    {"=~", "pattern", "test.*"},
+    {"!~", "text", "number.*"}
   ]
 
   test "test parser behavior for various token examples" do

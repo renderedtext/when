@@ -15,7 +15,11 @@ defmodule When.Lexer.Test do
     "(pull_request =~ '.*' and result = 'passed') or PULL_REQUEST !~ '.*'",
     "some_fun('abc', 123, 45.67, true) or false",
     "some_fun([123, 45.67]) or [false] and []",
-    "some_fun('a', {b: 123}, [false]) or {}"
+    "some_fun('a', {b: 123}, [false]) or {}",
+    "'hello' = 'world'",
+    "'test' != 'example'",
+    "'pattern' =~ 'test.*'",
+    "'text' !~ 'number.*'"
   ]
 
   @expected_example_results [
@@ -152,6 +156,26 @@ defmodule When.Lexer.Test do
       {:bool_operator, 1, "or"},
       {:"{", 1},
       {:"}", 1}
+    ],
+    [
+      {:string, 1, "hello"},
+      {:operator, 1, "="},
+      {:string, 1, "world"}
+    ],
+    [
+      {:string, 1, "test"},
+      {:operator, 1, "!="},
+      {:string, 1, "example"}
+    ],
+    [
+      {:string, 1, "pattern"},
+      {:operator, 1, "=~"},
+      {:string, 1, "test.*"}
+    ],
+    [
+      {:string, 1, "text"},
+      {:operator, 1, "!~"},
+      {:string, 1, "number.*"}
     ]
   ]
 
