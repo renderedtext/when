@@ -49,15 +49,29 @@ blocks:
             - make test.setup
             - make test
 
+        - name: 🧪 Unit Test - Erlang 28
+          matrix:
+            - env_var: ERLANG_VERSION
+              values: [ "28"]
+            - env_var: ELIXIR_VERSION
+              values: [ "1.18.4"]
+          commands:
+            - make test.setup
+            - make test
+
         - name: 🧪 Escript Binary Test
           matrix:
             - env_var: ERLANG_VERSION
-              values: [ "24", "25", "26", "27" ]
+              values: [ "24", "25", "26", "27", "28" ]
           commands:
             - ELIXIR_VERSION=1.16.3
             - |
               if [ "$ERLANG_VERSION" = "27" ]; then
                 ELIXIR_VERSION=1.17.3
+              fi
+            - |
+              if [ "$ERLANG_VERSION" = "28" ]; then
+                ELIXIR_VERSION=1.18.4
               fi
             - sem-version elixir $ELIXIR_VERSION
             - sem-version erlang $ERLANG_VERSION

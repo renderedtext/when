@@ -63,8 +63,8 @@ test:
 test.matrix: export MIX_ENV=test
 test.matrix:
 	@echo "Running tests on all Erlang/Elixir combinations"
-	@for erlang_version in 24 25 26 27; do \
-		for elixir_version in 1.14.5 1.15.7 1.16.3 1.17.3; do \
+	@for erlang_version in 24 25 26 27 28; do \
+		for elixir_version in 1.14.5 1.15.7 1.16.3 1.17.3 1.18.4; do \
 			echo "\n\n=== Testing with Erlang $$erlang_version and Elixir $$elixir_version ==="; \
 			ERLANG_VERSION=$$erlang_version ELIXIR_VERSION=$$elixir_version $(MAKE) build && \
 			ERLANG_VERSION=$$erlang_version ELIXIR_VERSION=$$elixir_version $(MAKE) test || exit 1; \
@@ -86,9 +86,11 @@ build.binaries: export MIX_ENV=prod
 build.binaries:
 	@echo "Building binaries for all supported OTP versions"
 	@mkdir -p ./bin
-	@for erlang_version in 24 25 26 27; do \
+	@for erlang_version in 24 25 26 27 28; do \
 		if [ "$$erlang_version" = "27" ]; then \
 			elixir_version="1.17.3"; \
+		elif [ "$$erlang_version" = "28" ]; then \
+			elixir_version="1.18.4"; \
 		else \
 			elixir_version="1.16.3"; \
 		fi; \
